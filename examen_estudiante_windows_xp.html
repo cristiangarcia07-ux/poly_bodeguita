@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examen Final: Poly Bodeguita - Empire Edition (Estudiante)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --empire-red: #ff0000;
+            --empire-dark: #121212;
+            --empire-grey: #2a2a2a;
+            --empire-light-grey: #444444;
+            --empire-blue: #00ffff;
+        }
+
+        body {
+            background-color: #000;
+            background-image: url('https://images.unsplash.com/photo-1475274047050-1d0c0975c63e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');
+            background-size: cover; background-position: center; background-attachment: fixed;
+            font-family: 'Share Tech Mono', monospace; margin: 0; padding: 0; overflow: hidden;
+            display: flex; flex-direction: column; height: 100vh; color: #00ffff;
+        }
+
+        .taskbar {
+            background: linear-gradient(to bottom, #1a1a1a 0%, #333 50%, #1a1a1a 100%);
+            height: 40px; position: absolute; bottom: 0; width: 100%; display: flex;
+            align-items: center; z-index: 1000; border-top: 2px solid var(--empire-red);
+            box-shadow: 0 -5px 15px rgba(255, 0, 0, 0.3);
+        }
+
+        .start-btn {
+            background: linear-gradient(to bottom, #900 0%, #ff0000 50%, #900 100%);
+            border: 1px solid #fff; border-radius: 0 10px 10px 0;
+            color: white; font-weight: bold; font-family: 'Orbitron', sans-serif;
+            font-size: 14px; padding: 5px 20px; height: 100%; display: flex;
+            align-items: center; cursor: pointer; text-transform: uppercase; letter-spacing: 2px;
+        }
+        .start-btn::before { 
+            content: ''; width: 20px; height: 20px;
+            background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Galactic_Empire_emblem.svg/1024px-Galactic_Empire_emblem.svg.png');
+            background-size: contain; background-repeat: no-repeat; margin-right: 10px;
+        }
+
+        .start-menu {
+            position: absolute; bottom: 40px; left: 0; width: 250px;
+            background: rgba(18, 18, 18, 0.98); border: 2px solid var(--empire-red); border-bottom: none;
+            display: none; flex-direction: column; z-index: 2000;
+            box-shadow: 5px -5px 15px rgba(255, 0, 0, 0.4); border-radius: 10px 10px 0 0; padding: 10px 0;
+        }
+        .start-menu-item {
+            padding: 12px 20px; color: #ccc; cursor: pointer; display: flex; align-items: center;
+            gap: 10px; font-family: 'Orbitron', sans-serif; font-size: 13px; transition: 0.2s;
+        }
+        .start-menu-item:hover { background: var(--empire-red); color: white; padding-left: 25px; }
+
+        .window {
+            position: absolute; width: 850px; background: rgba(18, 18, 18, 0.95);
+            border: 2px solid var(--empire-red); border-radius: 10px 10px 0 0;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.5); display: flex; flex-direction: column;
+            resize: both; overflow: hidden; max-height: 85vh; backdrop-filter: blur(10px);
+        }
+
+        .title-bar {
+            background: linear-gradient(to bottom, #441111 0%, #ff0000 100%);
+            padding: 8px 10px; border-radius: 8px 8px 0 0; display: flex;
+            justify-content: space-between; align-items: center; cursor: move; border-bottom: 2px solid #000;
+        }
+
+        .title-bar-text {
+            color: white; font-weight: bold; font-size: 14px; font-family: 'Orbitron', sans-serif;
+            text-shadow: 0 0 5px #ff0000; margin-left: 5px; user-select: none; text-transform: uppercase;
+        }
+
+        .title-bar-controls { display: flex; gap: 5px; }
+        .title-bar-controls button {
+            width: 25px; height: 25px; border: 1px solid #fff; border-radius: 5px;
+            color: white; font-weight: bold; cursor: pointer; display: flex;
+            justify-content: center; align-items: center; background: #000;
+        }
+        
+        .btn-min, .btn-max { border-color: var(--empire-blue) !important; color: var(--empire-blue) !important; }
+        .btn-close { border-color: var(--empire-red) !important; color: var(--empire-red) !important; }
+
+        .window-body { padding: 30px; font-size: 14px; border: 1px solid #333; border-top: none; flex-grow: 1; overflow-y: auto; }
+
+        .question-block { margin-bottom: 40px; }
+        hr { border: 0; border-top: 1px solid var(--empire-red); opacity: 0.3; margin: 40px 0; }
+        h4 { margin-top: 0; margin-bottom: 15px; color: #ff0000; font-size: 20px; font-family: 'Orbitron', sans-serif; text-transform: uppercase; border-left: 4px solid #ff0000; padding-left: 15px; }
+        p { margin-bottom: 20px; line-height: 1.8; color: #e0e0e0; text-align: justify; }
+        strong { color: var(--empire-blue); }
+
+        .desktop-icons { display: flex; flex-direction: column; flex-wrap: wrap; gap: 30px; padding: 30px; height: calc(100vh - 60px); }
+        .icon { width: 90px; text-align: center; color: white; cursor: pointer; filter: drop-shadow(0 0 5px #00ffff); transition: 0.2s; }
+        .icon img { width: 50px; height: 50px; margin-bottom: 8px; border-radius: 5px; }
+        .icon span { font-size: 12px; background: rgba(255,0,0,0.3); padding: 4px 8px; border-radius: 5px; border: 1px solid var(--empire-red); display: block; margin-top: 5px; }
+
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #600; border-radius: 5px; }
+    </style>
+</head>
+<body>
+
+    <div class="start-menu" id="start-menu">
+        <div class="start-menu-item" onclick="document.getElementById('win-main').style.display = 'flex'; toggleMenu();">
+            <span>MISIONES DATA</span>
+        </div>
+        <div class="start-menu-item" onclick="window.open('https://starwarsintrogenerator.com/scroller?u=2743bzv9', '_blank'); toggleMenu();">
+            <span>INTRODUCCIÓN</span>
+        </div>
+        <div class="start-menu-item" onclick="document.getElementById('win-main').scrollTop = 0; toggleMenu();">
+            <span>🔝 INICIO EXAMEN</span>
+        </div>
+        <hr style="width: 90%; margin: 10px auto; opacity: 0.2; border: 0; border-top: 1px solid var(--empire-red);">
+        <div class="start-menu-item" onclick="alert('ACCESO DENEGADO: Solo Administradores imperiales'); toggleMenu();">
+            <span>⚙ AJUSTES</span>
+        </div>
+        <div class="start-menu-item" onclick="location.reload();">
+            <span>⏻ REINICIAR</span>
+        </div>
+    </div>
+
+    <div class="desktop-icons">
+        <div class="icon" onclick="document.getElementById('win-main').style.display = 'flex';">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Galactic_Empire_emblem.svg/1024px-Galactic_Empire_emblem.svg.png" alt="folder">
+            <span>MISIONES_DATAPAD</span>
+        </div>
+        <div class="icon" onclick="window.open('https://starwarsintrogenerator.com/scroller?u=2743bzv9', '_blank')">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Star_Wars_Logo.svg/2560px-Star_Wars_Logo.svg.png" alt="sw">
+            <span>INTELIGENCIA_EMPIRE</span>
+        </div>
+    </div>
+
+    <!-- MAIN WINDOW -->
+    <div class="window" id="win-main" style="left: 100px; top: 30px; z-index: 10;">
+        <div class="title-bar">
+            <div class="title-bar-text">BASE DE DATOS IMPERIAL - DATAPAD DE ESTUDIANTE</div>
+            <div class="title-bar-controls">
+                <button class="btn-min" onclick="document.getElementById('win-main').style.display='none'">_</button>
+                <button class="btn-max">□</button>
+                <button class="btn-close" onclick="document.getElementById('win-main').style.display='none'">X</button>
+            </div>
+        </div>
+        <div class="window-body">
+            
+            <div class="question-block">
+                <h4>1. Análisis de Costes de Producción Críticos</h4>
+                <p>Identifica de forma exhaustiva el plato que presenta el coste de fabricación más elevado dentro del catálogo de la bodega. Para este cálculo, considera exclusivamente la configuración de ración completa, calculada como el producto de la `cantidadracioncompletaenkg` por el `precio_x_euro` de cada ingrediente asociado. El informe resultante debe mostrar el nombre oficial del plato, el recuento total de ingredientes que lo componen y una columna única con la lista descriptiva de todos sus ingredientes concatenada por comas.</p>
+            </div>
+            <hr>
+
+            <div class="question-block">
+                <h4>2. Auditoría de Ingredientes sin Trazabilidad</h4>
+                <p>Dentro del inventario de materias primas, existen elementos que parecen no haber tenido rotación en canales específicos. Identifica los nombres oficiales (`descripcion`) de aquellos ingredientes que NUNCA han formado parte de un pedido servido a domicilio (`es_a_domicilio = TRUE`) cuando dicho pedido ha sido gestionado por empleados cuyo nombre comience por la letra 'P' (ej. Paco, Pedro). Se requiere esta información para optimizar el almacenamiento y detectar posibles anomalías en la gestión de repartos.</p>
+            </div>
+            <hr>
+
+            <div class="question-block">
+                <h4>3. Maximización del Margen de Beneficio</h4>
+                <p>Determina qué cliente ha generado el mayor impacto económico positivo para la empresa sumando la rentabilidad de todas sus operaciones comerciales. El beneficio neto se debe calcular restando el coste total de fabricación (basado en la composición de ingredientes y el tipo de ración, media o completa) al precio de venta facturado. La consulta debe devolver el email institucional del cliente, su nombre completo y la métrica exacta del beneficio histórico generado tras la deducción de costes de producción.</p>
+            </div>
+            <hr>
+
+            <div class="question-block">
+                <h4>4. Concentración de Consumo de Aceite de Oliva</h4>
+                <p>El departamento de compras ha notado un volumen de gasto singular en "Aceite de Oliva Virgen Extra". Necesitamos identificar al perfil de cliente que lidera el consumo de este producto. Localiza al cliente que ha acumulado la mayor cantidad total de platos servidos (`sum(cantidad)`) que incluyan de manera explícita dicho ingrediente en su receta. La respuesta debe incluir el nombre, los apellidos, el email de contacto y el total de raciones consumidas para su posterior perfilado comercial.</p>
+            </div>
+            <hr>
+
+            <div class="question-block">
+                <h4>5. Desglose de Facturación por Canal y Empleado</h4>
+                <p>Realiza un análisis comparativo de la eficiencia de ventas de la plantilla. Debes mostrar la facturación total gestionada por cada empleado (identificado por su `usuario`), desglosando la información en dos columnas diferenciadas: la recaudación proveniente exclusivamente de pedidos a domicilio (`Facturado_Domicilio`) y la recaudación generada en el local físico (`Facturado_Local`). Este desglose es fundamental para la toma de decisiones operativas sobre el personal de reparto.</p>
+            </div>
+            <hr>
+
+            <div class="question-block">
+                <h4>6. Identificación de Pedidos Extremos</h4>
+                <p>Para fines de auditoría financiera, se requiere obtener un extracto con los registros más dispares de la base de datos histórica. En una única consulta SQL, obtén exactamente dos registros: los detalles completos del pedido con el importe total más bajo y los del pedido con el importe total más alto. La salida debe incluir una etiqueta identificativa ("MAS BARATO" / "MAS CARO"), el ID del pedido, el importe total neto, el nombre del cliente y la dirección de entrega correspondiente.</p>
+            </div>
+            <hr>
+
+            <div class="question-block">
+                <h4>7. Exclusividad Geográfica de Platos</h4>
+                <p>Detecta patrones de consumo altamente localizados. Identifica aquellos platos que han sido solicitados ÚNICAMENTE por clientes cuya dirección de residencia esté vinculada al código postal '41004'. Si un plato ha sido incluido en al menos un pedido por un cliente residente en cualquier otro código postal, debe ser omitido del resultado. Este análisis permitirá evaluar la viabilidad de menús específicos por zona de reparto.</p>
+            </div>
+            <hr>
+
+            <div class="question-block">
+                <h4>8. Análisis de Gasto en Dominios Específicos</h4>
+                <p>Dentro de los perfiles de usuario corporativos, se desea auditar el volumen de gasto de los clientes con el dominio de correo electrónico '@ejemplo.com'. El requisito es calcular el gasto total acumulado de estos clientes, pero con una restricción técnica: solo se deben considerar aquellos pedidos que no incluyan ninguna ración de tipo 'completa'. Si un pedido contiene una ración completa, se debe ignorar por completo de este sumatorio de gasto ligero.</p>
+            </div>
+            <hr>
+
+            <div class="question-block">
+                <h4>9. Densidad de Clientes y Volumen por Código Postal</h4>
+                <p>Genera un informe demográfico-económico detallado por zona postal. La consulta debe devolver, para cada código postal registrado, el número total de clientes únicos asociados a dicha zona y el volumen total de créditos facturados (SUM de total pedidos) a dicho segmento. Los resultados deben presentarse ordenados de manera descendente según el volumen total facturado para identificar las áreas geográficas más rentables.</p>
+            </div>
+            <hr>
+
+            <div class="question-block">
+                <h4>10. Evaluación de Desempeño en Comandas Complejas</h4>
+                <p>Se busca identificar a los empleados con mejor capacidad para gestionar pedidos de alta diversidad. Obtén el nombre completo del empleado, la cantidad total de pedidos que ha ha tramitado y el ingreso promedio por pedido. La condición es que solo deben entrar en el cálculo aquellos pedidos que contengan un mínimo de tres o más variedades de platos distintos (`DISTINCT plato_id`). Los pedidos estándar o de baja complejidad quedan fuera de esta métrica de rendimiento avanzado.</p>
+            </div>
+            <hr>
+
+            <div class="question-block">
+                <h4>11. Fidelización en Promoción Especial Jeremías</h4>
+                <p>Se ha activado una campaña de fidelización para clientes recurrentes de nombre 'Jeremías'. La promoción consiste en otorgar una bonificación a aquellos clientes cuyo nombre comience por 'jeremias%' y que hayan solicitado pedidos a domicilio a una misma dirección en 20 o más ocasiones. Identifica cuántos pedidos ha realizado cada cliente que cumpla el patrón de nombre a cada una de sus direcciones, indicando claramente cuáles de estas combinaciones superan el umbral de la promoción.</p>
+            </div>
+            <hr>
+
+            <div class="question-block">
+                <h4>12. Gestión de Comandas Automatizada (Apertura)</h4>
+                <p>Inicia el proceso de automatización de ticketing mediante el uso de procedimientos almacenados. Utiliza el procedimiento `AbrirPedido` para crear una nueva comanda registrada a nombre del cliente con email 'jeremiaselcocas@gmail.com'. El mozo responsable asignado debe ser 'cruiz' y la entrega se realizará a domicilio en la dirección estratégica de Málaga situada en 'Calle Larios 12'. Asegúrate de capturar los identificadores correspondientes mediante sentencias SET antes de ejecutar la llamada al procedimiento.</p>
+            </div>
+            <hr>
+
+            <div class="question-block">
+                <h4>13. Modificación de Comanda: Lógica de Cortesía</h4>
+                <p>Para mejorar la satisfacción del cliente, se debe añadir una línea de cortesía al pedido generado en el paso anterior. Utiliza el procedimiento especializado `AñadirPlatoAPedido` para integrar 5 raciones de tipo 'completa' del plato 'Secreto Ibérico'. Es imperativo configurar el parámetro de cortesía (`gratis = true`) para asegurar que el sistema no incremente el subtotal facturable, manteniendo la trazabilidad del consumo sin cargo adicional para el cliente.</p>
+            </div>
+            <hr>
+
+            <div class="question-block">
+                <h4>14. Finalización y Recálculo Impositivo del Ticket</h4>
+                <p>Concluye la edición del pedido anterior añadiendo productos estándar con cargo. Emplea de nuevo el procedimiento `AñadirPlatoAPedido` para sumar 2 raciones completas de 'Chuletas de Cordero', esta vez con el parámetro de cortesía desactivado (`gratis = false`). Verifica que el sistema recalcula con precisión el subtotal actualizado y aplica de manera automática el devengo del 21% de IVA sobre el total final de la operación, cerrando así la cadena de gestión impositiva.</p>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="taskbar">
+        <div class="start-btn" onclick="toggleMenu()">Menu</div>
+    </div>
+
+    <script>
+        const win = document.getElementById('win-main');
+        const titleBar = win.querySelector('.title-bar');
+        let isDragging = false;
+        let currentX, currentY, initialX, initialY;
+
+        titleBar.addEventListener('mousedown', dragStart);
+        function dragStart(e) {
+            if (e.target.tagName.toLowerCase() === 'button') return;
+            initialX = e.clientX - win.offsetLeft; initialY = e.clientY - win.offsetTop;
+            if (e.target === titleBar || e.target.classList.contains('title-bar-text')) isDragging = true;
+        }
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('mouseup', () => isDragging = false);
+        function drag(e) {
+            if (isDragging) {
+                e.preventDefault();
+                currentX = e.clientX - initialX; currentY = e.clientY - initialY;
+                win.style.left = currentX + "px"; win.style.top = currentY + "px";
+            }
+        }
+        function toggleMenu() {
+            const menu = document.getElementById('start-menu');
+            menu.style.display = (menu.style.display === 'flex') ? 'none' : 'flex';
+        }
+        document.addEventListener('click', (e) => {
+            const menu = document.getElementById('start-menu');
+            const btn = document.querySelector('.start-btn');
+            if (menu.style.display === 'flex' && !menu.contains(e.target) && !btn.contains(e.target)) menu.style.display = 'none';
+        });
+    </script>
+</body>
+</html>

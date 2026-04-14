@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poly Bodeguita - Project Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #c9a050;
+            --bg: #121212;
+            --card: rgba(255, 255, 255, 0.05);
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            background: var(--bg);
+            color: white;
+            font-family: 'Outfit', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-image: radial-gradient(circle at 50% 50%, #1e1e1e 0%, #121212 100%);
+        }
+        .hub-container {
+            text-align: center;
+            background: var(--card);
+            backdrop-filter: blur(20px);
+            padding: 4rem;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            font-weight: 800;
+        }
+        h1 span { color: var(--primary); }
+        .links-grid {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 2rem;
+            border-radius: 20px;
+            text-decoration: none;
+            color: white;
+            transition: all 0.3s;
+            width: 200px;
+        }
+        .card:hover {
+            background: rgba(201, 160, 80, 0.1);
+            border-color: var(--primary);
+            transform: translateY(-5px);
+        }
+        .card i {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            display: block;
+            color: var(--primary);
+        }
+        .card h3 { margin: 0; }
+        .card p { font-size: 0.8rem; color: #888; margin-top: 0.5rem; }
+    </style>
+</head>
+<body>
+    <div class="hub-container">
+        <h1>Poly <span>Bodeguita</span> Hub</h1>
+        <div class="links-grid">
+            <a href="./restaurant-ui/index.html" class="card">
+                <i>👤</i>
+                <h3>Employee UI</h3>
+                <p>Manage orders and clients</p>
+            </a>
+            <a href="/api-docs/" class="card">
+                <i>🔌</i>
+                <h3>API Docs</h3>
+                <p>Swagger Documentation</p>
+            </a>
+            <a href="examen_estudiante_windows_xp.html" class="card">
+                <i>🪟</i>
+                <h3>Exam Portal</h3>
+                <p>Student Interface</p>
+            </a>
+        </div>
+    </div>
+</body>
+</html>

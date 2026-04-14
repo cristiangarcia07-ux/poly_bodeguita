@@ -1,0 +1,24 @@
+services:
+  # El Servicio de API Dinámica
+  # Este contenedor se conecta específicamente a tu contenedor 'mariadb_container'.
+  api:
+    image: bernat13/mariadb2apirest:main
+    container_name: dynamic-api
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      # --- CONEXIÓN A TU MARIADB_CONTAINER ---
+      DB_HOST: mariadb_container # Nombre del contenedor destino
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: "54321Ba##" # Tu contraseña específica
+      DB_NAME: poly_bodeguita  # Cambia esto si el nombre de la BBDD es diferente
+      PORT: 3000
+    networks:
+      - mariadb_default
+
+# Conectamos con la red existente del otro contenedor para que se vean entre sí
+networks:
+  mariadb_default:
+    external: true

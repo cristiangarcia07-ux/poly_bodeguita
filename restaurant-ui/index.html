@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poly Bodeguita - Employee Portal</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <!-- Login Screen -->
+        <section id="login-screen" class="screen active">
+            <div class="login-card glass-morphism">
+                <div class="logo-container">
+                    <h1>Poly <span>Bodeguita</span></h1>
+                    <p>Employee Management System</p>
+                </div>
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" placeholder="Enter your username">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="••••••••">
+                </div>
+                <button id="login-btn" class="btn-primary">Login</button>
+                <div id="login-error" class="error-msg"></div>
+            </div>
+        </section>
+
+        <!-- Dashboard Screen -->
+        <section id="dashboard-screen" class="screen">
+            <header class="main-header glass-morphism">
+                <div class="user-info">
+                    <div class="avatar">EB</div>
+                    <div class="details">
+                        <span id="display-name">Employee Name</span>
+                        <span class="role">Staff Member</span>
+                    </div>
+                </div>
+                <button id="logout-btn" class="btn-secondary">Logout</button>
+            </header>
+
+            <main class="dashboard-content">
+                <div class="stats-grid">
+                    <div class="stat-card glass-morphism">
+                        <span class="stat-label">Active Orders</span>
+                        <span id="count-active" class="stat-value">--</span>
+                    </div>
+                    <div class="stat-card glass-morphism">
+                        <span class="stat-label">Total Revenue</span>
+                        <span id="revenue-today" class="stat-value">--</span>
+                    </div>
+                </div>
+
+                <div class="actions-container">
+                    <button id="new-order-btn" class="btn-primary large">Open New Order</button>
+                </div>
+
+                <div class="orders-list-container glass-morphism">
+                    <h2>Recent Orders</h2>
+                    <table id="orders-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Client</th>
+                                <th>Type</th>
+                                <th>Subtotal</th>
+                                <th>Total</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-body">
+                            <!-- Orders will be injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </main>
+        </section>
+
+        <!-- New Order Modal -->
+        <div id="order-modal" class="modal">
+            <div class="modal-content glass-morphism">
+                <span class="close-modal">&times;</span>
+                <h3>New Order</h3>
+                <div class="form-group">
+                    <label for="client-select">Select Client</label>
+                    <select id="client-select">
+                        <option value="">Loading clients...</option>
+                    </select>
+                </div>
+                <div class="form-group toggle-group">
+                    <label>Order Type</label>
+                    <div class="toggle-btns">
+                        <button class="toggle-btn active" data-type="local">Dine-In</button>
+                        <button class="toggle-btn" data-type="delivery">Delivery</button>
+                    </div>
+                </div>
+                <div id="delivery-address-container" class="form-group hidden">
+                    <label for="address-select">Select Address</label>
+                    <select id="address-select"></select>
+                </div>
+                
+                <div class="plate-selection">
+                    <h4>Add Dishes</h4>
+                    <div class="plate-search">
+                        <input type="text" id="plate-search-input" placeholder="Search plates...">
+                    </div>
+                    <div id="plates-grid" class="plates-grid">
+                        <!-- Plates will be injected here -->
+                    </div>
+                </div>
+
+                <div class="current-items-section">
+                    <h4>Items in Order</h4>
+                    <div id="modal-items-list" class="modal-items-list">
+                        <!-- Current items will be listed here -->
+                    </div>
+                </div>
+
+                <div class="order-summary-box">
+                    <div class="summary-line"><span>Subtotal:</span> <span id="modal-subtotal">0.00€</span></div>
+                    <div class="summary-line"><span>Tax (21%):</span> <span id="modal-tax">0.00€</span></div>
+                    <div class="summary-line total"><span>Total:</span> <span id="modal-total">0.00€</span></div>
+                </div>
+
+                <button id="submit-order-btn" class="btn-primary">Confirm Order</button>
+            </div>
+        </div>
+
+        <!-- Toast Notifications -->
+        <div id="toast-container"></div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
