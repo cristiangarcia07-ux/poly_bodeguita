@@ -110,9 +110,6 @@
 PORT=5500
 
 # 1. Start the Containers (Database and API)
-echo "📦 Starting MariaDB Container..."
-(cd mariadb && docker compose up)
-
 echo "📦 Starting Dynamic API Containers..."
 (cd swagger-ui && docker compose up)
 
