@@ -106,85 +106,18 @@
 #
 #
 #
-# Configuration
-PORT=5500
+echo "🛑 Parando el servidor y los contenedores Docker..."
 
-# 1. Start the Containers (Database and API)
-echo "📦 Starting MariaDB Container..."
-(cd mariadb && docker compose up)
-
-echo "📦 Starting Dynamic API Containers..."
-(cd swagger-ui && docker compose up)
-
-# 2. Initialize/Populate Database
-echo "⏳ Waiting for MariaDB to be ready (10s)..."
-sleep 10
-
-echo "🗄️  Populating MariaDB Container with schema.sql..."
-cat schema.sql | docker exec -i mariadb_container mysql -u root -p'54321Ba##'
-
-# 3. Start the Python HTTP server
-cat << 'EOF'
-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-X  ^    ^    ^    ^                    X
-X /c\  /r\  /i\  /s\          (  (   ( X
-X<___><___><___><___>        ( )( ) ( )X
-X  ^    ^    ^                Y  Y   Y X
-X /x\  /l\  /p\              |"||"| |"|X
-X<___><___><___>             | || | | |X
-X  ^    ^    ^    ^    ^     | || | | |X
-X /1\  /.\  /2\  /.\  /3\    | || | | |X
-X<___><___><___><___><___>   '-''-' '-'X
-X                                      X
-X   ^    ^    ^    ^    ^    ^    ^    X
-X  /i\  /t\  /a\  /d\  /o\  /r\  /i\  XX
-X <___><___><___><___><___><___><___>X X
-XXX      XXXXXXXXXXXXXXXXXXX       XX  X
-X  X     Xesto             X     XX    X
-X   XX   Xes solo          X   XX      X
-X     XX Xun labo          XXXX        X
-X       XXXXXXXXXXXXXXXXXXXX           X
-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-EOF
-sleep 1
-clear
-# Detect local IP
-IP_ADDR=$(hostname -I | awk '{print $1}')
-if [ -z "$IP_ADDR" ]; then
-    IP_ADDR="127.0.0.1"
-fi
-
-echo ""
 echo "------------------------------------------------"
-echo "  🚀 Poly Bodeguita - Starting Web Server"
-echo "------------------------------------------------"
-echo "  📍 Root: $(pwd)"
-echo "  🌐 Local URL:   http://localhost:$PORT"
-echo "  🌐 Network URL: http://$IP_ADDR:$PORT"
-echo "------------------------------------------------"
-echo "✅ Todo configurado y corriendo en segundo plano!"
-echo "   Para cerrar todo, ejecuta: ./stop_server.sh"
-echo ""
-nohup python3 -m http.server $PORT --bind 0.0.0.0 > /dev/null 2>&1 &
-echo "Python local web server arranchado con PID: $!"
+echo "  📦 Deteniendo la API en Swagger UI..."
+(cd swagger-ui && docker compose down)
 
-# XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-# X  ^    ^    ^    ^                    X
-# X /c\  /r\  /i\  /s\          (  (   ( X
-# X<___><___><___><___>        ( )( ) ( )X
-# X  ^    ^    ^                Y  Y   Y X
-# X /x\  /l\  /p\              |"||"| |"|X
-# X<___><___><___>             | || | | |X
-# X  ^    ^    ^    ^    ^     | || | | |X
-# X /1\  /.\  /2\  /.\  /3\    | || | | |X
-# X<___><___><___><___><___>   '-''-' '-'X
-# X                                      X
-# X   ^    ^    ^    ^    ^    ^    ^    X
-# X  /i\  /t\  /a\  /d\  /o\  /r\  /i\  XX
-# X <___><___><___><___><___><___><___>X X
-# XXX      XXXXXXXXXXXXXXXXXXX       XX  X
-# X  X     Xesto             X     XX    X
-# X   XX   Xes solo          X   XX      X
-# X     XX Xun labo          XXXX        X
-# X       XXXXXXXXXXXXXXXXXXXX           X
-# XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+echo "  🗄️  Deteniendo el servidor MariaDB..."
+(cd mariadb && docker compose down)
+echo "------------------------------------------------"
+
+# Kill python http.server just in case they ran it in the background
+echo "  🐍 Deteniendo el servidor web local..."
+pkill -f "python3 -m http.server" || echo "  (El servidor web ya estaba detenido)"
+
+echo "✅ ¡Todo detenido y limpio correctamente!"

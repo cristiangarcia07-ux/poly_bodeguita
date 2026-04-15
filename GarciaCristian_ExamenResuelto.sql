@@ -25,39 +25,36 @@ WHERE i.id NOT IN (
     AND e.nombre LIKE 'P%'
 );
 
--- 3. El Benefactor Supremo (Sin CASE WHEN)
-WITH Ingresos AS (
+-- 3. El Benefactor Supremo (Sin CASE WHEN ni CTE)
+SELECT c.email, c.nombre, COALESCE(ing.total_ingreso, 0) - COALESCE(ca.coste_final, 0) AS beneficio_global
+FROM clientes c
+INNER JOIN (
     SELECT p.cliente_id, SUM(pp.precio_unitario * pp.cantidad) as total_ingreso
     FROM pedidos p
     INNER JOIN platos_pedidos pp ON p.id = pp.pedido_id
     GROUP BY p.cliente_id
-),
-Costes AS (
-    SELECT p.cliente_id, SUM(ip.cantidadracioncompletaenkg * i.precio_x_euro * pp.cantidad) as total_coste
-    FROM pedidos p
-    INNER JOIN platos_pedidos pp ON p.id = pp.pedido_id
-    INNER JOIN ingrediente_plato ip ON pp.plato_id = ip.plato_id
-    INNER JOIN Ingredientes i ON ip.ingrediente_id = i.id
-    WHERE pp.tipo_racion = 'completa'
-    GROUP BY p.cliente_id
-    UNION ALL
-    SELECT p.cliente_id, SUM(ip.cantidadracionmediaenkg * i.precio_x_euro * pp.cantidad) as total_coste
-    FROM pedidos p
-    INNER JOIN platos_pedidos pp ON p.id = pp.pedido_id
-    INNER JOIN ingrediente_plato ip ON pp.plato_id = ip.plato_id
-    INNER JOIN Ingredientes i ON ip.ingrediente_id = i.id
-    WHERE pp.tipo_racion = 'media'
-    GROUP BY p.cliente_id
-),
-CostesAgrupados AS (
+) ing ON c.id = ing.cliente_id
+LEFT JOIN (
     SELECT cliente_id, SUM(total_coste) as coste_final
-    FROM Costes
+    FROM (
+        SELECT p.cliente_id, SUM(ip.cantidadracioncompletaenkg * i.precio_x_euro * pp.cantidad) as total_coste
+        FROM pedidos p
+        INNER JOIN platos_pedidos pp ON p.id = pp.pedido_id
+        INNER JOIN ingrediente_plato ip ON pp.plato_id = ip.plato_id
+        INNER JOIN Ingredientes i ON ip.ingrediente_id = i.id
+        WHERE pp.tipo_racion = 'completa'
+        GROUP BY p.cliente_id
+        UNION ALL
+        SELECT p.cliente_id, SUM(ip.cantidadracionmediaenkg * i.precio_x_euro * pp.cantidad) as total_coste
+        FROM pedidos p
+        INNER JOIN platos_pedidos pp ON p.id = pp.pedido_id
+        INNER JOIN ingrediente_plato ip ON pp.plato_id = ip.plato_id
+        INNER JOIN Ingredientes i ON ip.ingrediente_id = i.id
+        WHERE pp.tipo_racion = 'media'
+        GROUP BY p.cliente_id
+    ) Costes
     GROUP BY cliente_id
-)
-SELECT c.email, c.nombre, COALESCE(ing.total_ingreso, 0) - COALESCE(ca.coste_final, 0) AS beneficio_global
-FROM clientes c
-INNER JOIN Ingresos ing ON c.id = ing.cliente_id
-LEFT JOIN CostesAgrupados ca ON c.id = ca.cliente_id
+) ca ON c.id = ca.cliente_id
 ORDER BY beneficio_global DESC
 LIMIT 1;
 
@@ -73,20 +70,19 @@ GROUP BY c.id, c.nombre, c.apellido1, c.email
 ORDER BY total_raciones_aceite DESC
 LIMIT 1;
 
--- 5. Rendimiento Anual Reescrito (Sin CASE WHEN)
-WITH Domicilio AS (
-    SELECT empleado_id, SUM(total) as domicilio
-    FROM pedidos WHERE es_a_domicilio = TRUE GROUP BY empleado_id
-), Local_Ped AS (
-    SELECT empleado_id, SUM(total) as local_factura
-    FROM pedidos WHERE es_a_domicilio = FALSE GROUP BY empleado_id
-)
+-- 5. Rendimiento Anual Reescrito (Sin CASE WHEN ni CTE)
 SELECT e.usuario, 
        COALESCE(d.domicilio, 0) AS facturado_domicilio, 
        COALESCE(l.local_factura, 0) AS facturado_local
 FROM empleados e
-LEFT JOIN Domicilio d ON e.id = d.empleado_id
-LEFT JOIN Local_Ped l ON e.id = l.empleado_id;
+LEFT JOIN (
+    SELECT empleado_id, SUM(total) as domicilio
+    FROM pedidos WHERE es_a_domicilio = TRUE GROUP BY empleado_id
+) d ON e.id = d.empleado_id
+LEFT JOIN (
+    SELECT empleado_id, SUM(total) as local_factura
+    FROM pedidos WHERE es_a_domicilio = FALSE GROUP BY empleado_id
+) l ON e.id = l.empleado_id;
 
 -- 6. El más barato y el más caro
 (SELECT 'MAS BARATO' as tipo, p.id, p.total, c.nombre, d.Direccion
@@ -108,17 +104,15 @@ WHERE pl.id IN (
     SELECT DISTINCT pp.plato_id
     FROM platos_pedidos pp
     INNER JOIN pedidos p ON pp.pedido_id = p.id
-    INNER JOIN cliente_direccion cd ON p.cliente_id = cd.cliente_id
-    INNER JOIN Direcciones d ON cd.direccion_id = d.id
+    INNER JOIN Direcciones d ON p.direccion_id = d.id
     WHERE d.codigo_postal = '41004'
 ) 
 AND pl.id NOT IN (
     SELECT DISTINCT pp.plato_id
     FROM platos_pedidos pp
     INNER JOIN pedidos p ON pp.pedido_id = p.id
-    INNER JOIN cliente_direccion cd ON p.cliente_id = cd.cliente_id
-    INNER JOIN Direcciones d ON cd.direccion_id = d.id
-    WHERE d.codigo_postal != '41004'
+    INNER JOIN Direcciones d ON p.direccion_id = d.id
+    WHERE d.codigo_postal != '41004' OR d.codigo_postal IS NULL
 );
 
 -- 8. Dominios Corporativos
@@ -143,22 +137,21 @@ GROUP BY d.codigo_postal
 ORDER BY volumen_gasto_aportado DESC;
 
 -- 10. Rendimiento de Mozos (Múltiples Tablas)
-WITH PedidosMasDe3Platos AS (
-    SELECT pedido_id
-    FROM platos_pedidos
-    GROUP BY pedido_id
-    HAVING COUNT(DISTINCT plato_id) >= 3
-)
 SELECT e.nombre, 
        COUNT(p.id) AS numero_de_pedidos_grandes,
        AVG(p.total) AS media_dinero_por_pedido
 FROM empleados e
 INNER JOIN pedidos p ON e.id = p.empleado_id
-INNER JOIN PedidosMasDe3Platos p3 ON p.id = p3.pedido_id
+INNER JOIN (
+    SELECT pedido_id
+    FROM platos_pedidos
+    GROUP BY pedido_id
+    HAVING COUNT(DISTINCT plato_id) >= 3
+) p3 ON p.id = p3.pedido_id
 GROUP BY e.id, e.nombre;
 
 -- 11. Promoción Jeremías
-SELECT c.nombre, d.Direccion, COUNT(p.id) AS recuento_pedidos
+SELECT c.nombre, d.id d.Direccion, COUNT(p.id) AS recuento_pedidos
 FROM clientes c
 INNER JOIN pedidos p ON c.id = p.cliente_id
 INNER JOIN Direcciones d ON p.direccion_id = d.id

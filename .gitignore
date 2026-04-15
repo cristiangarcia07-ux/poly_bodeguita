@@ -11,3 +11,7 @@ Thumbs.db
 
 # Docker
 .docker/
+mariadb/mariadb_data/
+
+# Misc
+nohup.out

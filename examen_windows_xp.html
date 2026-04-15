@@ -268,38 +268,35 @@ WHERE i.id NOT IN (
                 <h4>3. Maximización del Margen de Beneficio</h4>
                 <p>Determina qué cliente ha generado el mayor impacto económico positivo para la empresa sumando la rentabilidad de todas sus operaciones comerciales. El beneficio neto se debe calcular restando el coste total de fabricación (basado en la composición de ingredientes y el tipo de ración, media o completa) al precio de venta facturado. La consulta debe devolver el email institucional del cliente, su nombre completo y la métrica exacta del beneficio histórico generado tras la deducción de costes de producción.</p>
                 <button class="btn-xp" onclick="toggleSql('sql-3')">DESENCRIPTAR SQL</button>
-                <pre id="sql-3">WITH Ingresos AS (
+                <pre id="sql-3">SELECT c.email, c.nombre, COALESCE(ing.total_ingreso, 0) - COALESCE(ca.coste_final, 0) AS beneficio_global
+FROM clientes c
+INNER JOIN (
     SELECT p.cliente_id, SUM(pp.precio_unitario * pp.cantidad) as total_ingreso
     FROM pedidos p
     INNER JOIN platos_pedidos pp ON p.id = pp.pedido_id
     GROUP BY p.cliente_id
-),
-Costes AS (
-    SELECT p.cliente_id, SUM(ip.cantidadracioncompletaenkg * i.precio_x_euro * pp.cantidad) as total_coste
-    FROM pedidos p
-    INNER JOIN platos_pedidos pp ON p.id = pp.pedido_id
-    INNER JOIN ingrediente_plato ip ON pp.plato_id = ip.plato_id
-    INNER JOIN Ingredientes i ON ip.ingrediente_id = i.id
-    WHERE pp.tipo_racion = 'completa'
-    GROUP BY p.cliente_id
-    UNION ALL
-    SELECT p.cliente_id, SUM(ip.cantidadracionmediaenkg * i.precio_x_euro * pp.cantidad) as total_coste
-    FROM pedidos p
-    INNER JOIN platos_pedidos pp ON p.id = pp.pedido_id
-    INNER JOIN ingrediente_plato ip ON pp.plato_id = ip.plato_id
-    INNER JOIN Ingredientes i ON ip.ingrediente_id = i.id
-    WHERE pp.tipo_racion = 'media'
-    GROUP BY p.cliente_id
-),
-CostesAgrupados AS (
+) ing ON c.id = ing.cliente_id
+LEFT JOIN (
     SELECT cliente_id, SUM(total_coste) as coste_final
-    FROM Costes
+    FROM (
+        SELECT p.cliente_id, SUM(ip.cantidadracioncompletaenkg * i.precio_x_euro * pp.cantidad) as total_coste
+        FROM pedidos p
+        INNER JOIN platos_pedidos pp ON p.id = pp.pedido_id
+        INNER JOIN ingrediente_plato ip ON pp.plato_id = ip.plato_id
+        INNER JOIN Ingredientes i ON ip.ingrediente_id = i.id
+        WHERE pp.tipo_racion = 'completa'
+        GROUP BY p.cliente_id
+        UNION ALL
+        SELECT p.cliente_id, SUM(ip.cantidadracionmediaenkg * i.precio_x_euro * pp.cantidad) as total_coste
+        FROM pedidos p
+        INNER JOIN platos_pedidos pp ON p.id = pp.pedido_id
+        INNER JOIN ingrediente_plato ip ON pp.plato_id = ip.plato_id
+        INNER JOIN Ingredientes i ON ip.ingrediente_id = i.id
+        WHERE pp.tipo_racion = 'media'
+        GROUP BY p.cliente_id
+    ) Costes
     GROUP BY cliente_id
-)
-SELECT c.email, c.nombre, COALESCE(ing.total_ingreso, 0) - COALESCE(ca.coste_final, 0) AS beneficio_global
-FROM clientes c
-INNER JOIN Ingresos ing ON c.id = ing.cliente_id
-LEFT JOIN CostesAgrupados ca ON c.id = ca.cliente_id
+) ca ON c.id = ca.cliente_id
 ORDER BY beneficio_global DESC
 LIMIT 1;</pre>
             </div>
@@ -326,19 +323,18 @@ LIMIT 1;</pre>
                 <h4>5. Desglose de Facturación por Canal y Empleado</h4>
                 <p>Realiza un análisis comparativo de la eficiencia de ventas de la plantilla. Debes mostrar la facturación total gestionada por cada empleado (identificado por su `usuario`), desglosando la información en dos columnas diferenciadas: la recaudación proveniente exclusivamente de pedidos a domicilio (`Facturado_Domicilio`) y la recaudación generada en el local físico (`Facturado_Local`). Este desglose es fundamental para la toma de decisiones operativas sobre el personal de reparto.</p>
                 <button class="btn-xp" onclick="toggleSql('sql-5')">DESENCRIPTAR SQL</button>
-                <pre id="sql-5">WITH Domicilio AS (
-    SELECT empleado_id, SUM(total) as domicilio
-    FROM pedidos WHERE es_a_domicilio = TRUE GROUP BY empleado_id
-), Local_Ped AS (
-    SELECT empleado_id, SUM(total) as local_factura
-    FROM pedidos WHERE es_a_domicilio = FALSE GROUP BY empleado_id
-)
-SELECT e.usuario, 
+                <pre id="sql-5">SELECT e.usuario, 
        COALESCE(d.domicilio, 0) AS facturado_domicilio, 
        COALESCE(l.local_factura, 0) AS facturado_local
 FROM empleados e
-LEFT JOIN Domicilio d ON e.id = d.empleado_id
-LEFT JOIN Local_Ped l ON e.id = l.empleado_id;</pre>
+LEFT JOIN (
+    SELECT empleado_id, SUM(total) as domicilio
+    FROM pedidos WHERE es_a_domicilio = TRUE GROUP BY empleado_id
+) d ON e.id = d.empleado_id
+LEFT JOIN (
+    SELECT empleado_id, SUM(total) as local_factura
+    FROM pedidos WHERE es_a_domicilio = FALSE GROUP BY empleado_id
+) l ON e.id = l.empleado_id;</pre>
             </div>
             <hr>
 
@@ -370,17 +366,15 @@ WHERE pl.id IN (
     SELECT DISTINCT pp.plato_id
     FROM platos_pedidos pp
     INNER JOIN pedidos p ON pp.pedido_id = p.id
-    INNER JOIN cliente_direccion cd ON p.cliente_id = cd.cliente_id
-    INNER JOIN Direcciones d ON cd.direccion_id = d.id
+    INNER JOIN Direcciones d ON p.direccion_id = d.id
     WHERE d.codigo_postal = '41004'
 ) 
 AND pl.id NOT IN (
     SELECT DISTINCT pp.plato_id
     FROM platos_pedidos pp
     INNER JOIN pedidos p ON pp.pedido_id = p.id
-    INNER JOIN cliente_direccion cd ON p.cliente_id = cd.cliente_id
-    INNER JOIN Direcciones d ON cd.direccion_id = d.id
-    WHERE d.codigo_postal != '41004'
+    INNER JOIN Direcciones d ON p.direccion_id = d.id
+    WHERE d.codigo_postal != '41004' OR d.codigo_postal IS NULL
 );</pre>
             </div>
             <hr>
@@ -420,18 +414,17 @@ ORDER BY volumen_gasto_aportado DESC;</pre>
                 <h4>10. Evaluación de Desempeño en Comandas Complejas</h4>
                 <p>Se busca identificar a los empleados con mejor capacidad para gestionar pedidos de alta diversidad. Obtén el nombre completo del empleado, la cantidad total de pedidos que ha tramitado y el ingreso promedio por pedido. La condición es que solo deben entrar en el cálculo aquellos pedidos que contengan un mínimo de tres o más variedades de platos distintos (`DISTINCT plato_id`). Los pedidos estándar o de baja complejidad quedan fuera de esta métrica de rendimiento avanzado.</p>
                 <button class="btn-xp" onclick="toggleSql('sql-10')">DESENCRIPTAR SQL</button>
-                <pre id="sql-10">WITH PedidosMasDe3Platos AS (
-    SELECT pedido_id
-    FROM platos_pedidos
-    GROUP BY pedido_id
-    HAVING COUNT(DISTINCT plato_id) >= 3
-)
-SELECT e.nombre, 
+                <pre id="sql-10">SELECT e.nombre, 
        COUNT(p.id) AS numero_de_pedidos_grandes,
        AVG(p.total) AS media_dinero_por_pedido
 FROM empleados e
 INNER JOIN pedidos p ON e.id = p.empleado_id
-INNER JOIN PedidosMasDe3Platos p3 ON p.id = p3.pedido_id
+INNER JOIN (
+    SELECT pedido_id
+    FROM platos_pedidos
+    GROUP BY pedido_id
+    HAVING COUNT(DISTINCT plato_id) >= 3
+) p3 ON p.id = p3.pedido_id
 GROUP BY e.id, e.nombre;</pre>
             </div>
             <hr>
@@ -479,6 +472,41 @@ CALL AñadirPlatoAPedido(@pedido, TRUE, @plato, 'completa', 5);</pre>
                 <pre id="sql-14">SET @pedido = (SELECT MAX(id) FROM pedidos);
 SET @plato = (SELECT id FROM platos WHERE nombre = 'Chuletas de Cordero');
 CALL AñadirPlatoAPedido(@pedido, FALSE, @plato, 'completa', 2);</pre>
+            </div>
+            <hr>
+
+            <div class="question-block">
+                <h4>15. Auditoría de Rentabilidad Estratégica (Vistas)</h4>
+                <p>Para concluir la auditoría del Imperio, es necesario consolidar una visión global del rendimiento económico de la Bodeguita. Crea una vista denominada `VistaRentabilidad` que desglose, para cada plato del menú, el total de raciones servidas, el volumen total de ingresos capturados y el coste total de producción incurrido (basado en el escandallo de ingredientes). La vista debe calcular finalmente el beneficio neto de cada producto. Una vez creada, ejecuta una consulta sobre dicha vista para identificar los platos que generan mayor rentabilidad neta.</p>
+                <button class="btn-xp" onclick="toggleSql('sql-15')">DESENCRIPTAR SQL</button>
+                <pre id="sql-15">DROP VIEW IF EXISTS VistaRentabilidad;
+CREATE VIEW VistaRentabilidad AS
+SELECT 
+    pl.nombre AS nombre_plato,
+    SUM(pp.cantidad) AS total_raciones_servidas,
+    ROUND(SUM(pp.cantidad * pp.precio_unitario), 2) AS ingresos_totales,
+    ROUND(SUM(
+        pp.cantidad * (
+            SELECT SUM(ip.cantidadracioncompletaenkg * i.precio_x_euro)
+            FROM ingrediente_plato ip
+            JOIN Ingredientes i ON ip.ingrediente_id = i.id
+            WHERE ip.plato_id = pl.id
+        )
+    ), 2) AS coste_total_produccion,
+    ROUND(
+        SUM(pp.cantidad * pp.precio_unitario) - 
+        SUM(pp.cantidad * (
+            SELECT SUM(ip.cantidadracioncompletaenkg * i.precio_x_euro)
+            FROM ingrediente_plato ip
+            JOIN Ingredientes i ON ip.ingrediente_id = i.id
+            WHERE ip.plato_id = pl.id
+        )), 2
+    ) AS beneficio_neto
+FROM platos pl
+JOIN platos_pedidos pp ON pl.id = pp.plato_id
+GROUP BY pl.id, pl.nombre;
+
+SELECT * FROM VistaRentabilidad ORDER BY beneficio_neto DESC;</pre>
             </div>
 
         </div>

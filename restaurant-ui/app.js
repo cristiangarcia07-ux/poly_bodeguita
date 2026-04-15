@@ -1,4 +1,4 @@
-const API_BASE = 'http://127.0.0.1:3000'; // Changed to IP for consistency
+const API_BASE = `http://${window.location.hostname}:3000`;
 
 // Global State
 let state = {

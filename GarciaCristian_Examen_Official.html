@@ -2,84 +2,122 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Examen de Consultas SQL - Poly Bodeguita</title>
+    <title>Examen Final de Base de Datos - Poly Bodeguita</title>
     <style>
-        body { font-family: 'Times New Roman', serif; line-height: 1.6; padding: 50px; color: #333; }
-        .header { text-align: center; border-bottom: 2px solid #333; margin-bottom: 30px; padding-bottom: 10px; }
-        .header h1 { margin: 0; font-size: 24px; text-transform: uppercase; }
+        body { font-family: 'Times New Roman', serif; line-height: 1.5; padding: 40px; color: #000; background: #fff; }
+        .header { text-align: center; border-bottom: 2px solid #000; margin-bottom: 30px; padding-bottom: 10px; }
+        .header h1 { margin: 0; font-size: 22px; text-transform: uppercase; }
         .header p { margin: 5px 0; font-weight: bold; }
-        .info { margin-bottom: 30px; }
-        .question { margin-bottom: 20px; }
-        .question h3 { margin: 0; font-size: 18px; }
-        .question p { margin: 5px 0 0 20px; font-style: italic; }
-        .footer { margin-top: 50px; text-align: right; border-top: 1px solid #ccc; padding-top: 10px; font-size: 12px; }
+        .info-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+        .info-table td { border: 1px solid #000; padding: 8px; font-size: 14px; }
+        .question { margin-bottom: 25px; page-break-inside: avoid; }
+        .question h3 { margin: 0; font-size: 16px; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+        .question p { margin: 10px 0 0 0; font-style: normal; text-align: justify; font-size: 14px; }
+        .footer { margin-top: 50px; text-align: center; font-size: 10px; color: #666; }
+        @media print {
+            body { padding: 0; }
+            .no-print { display: none; }
+        }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>Examen de Base de Datos - Proyecto Final</h1>
-        <p>Institución: Poly Bodeguita Academy</p>
-        <p>Alumno: Cristian García</p>
+        <h1>EXAMEN FINAL: GESTIÓN DE BASES DE DATOS (RA4)</h1>
+        <p>PROYECTO "POLY BODEGUITA" - CONVOCATORIA 2026</p>
     </div>
 
-    <div class="info">
-        <p><strong>Módulo:</strong> Gestión de Bases de Datos (RA4)</p>
-        <p><strong>Fecha:</strong> 14 de Abril de 2026</p>
-        <p><strong>Instrucciones:</strong> Lea detenidamente cada enunciado y escriba la consulta SQL correspondiente que resuelva la problemática planteada.</p>
+    <table class="info-table">
+        <tr>
+            <td style="width: 15%;"><strong>Alumno:</strong></td>
+            <td style="width: 50%;">Cristian García</td>
+            <td style="width: 15%;"><strong>Fecha:</strong></td>
+            <td style="width: 20%;">15 de Abril de 2026</td>
+        </tr>
+        <tr>
+            <td><strong>Calificación:</strong></td>
+            <td>____________________</td>
+            <td><strong>Tiempo:</strong></td>
+            <td>120 Minutos</td>
+        </tr>
+    </table>
+
+    <div class="question">
+        <h3>1. Análisis de Costes de Producción Críticos</h3>
+        <p>Identifica el plato con el coste de fabricación más elevado (ración completa). Muestra el nombre del plato, el recuento de ingredientes y la lista de ingredientes concatenada por comas.</p>
     </div>
 
     <div class="question">
-        <h3>Pregunta 1: Top de Ventas</h3>
-        <p>Obtenga los 5 platos más vendidos en términos de cantidad total pedida.</p>
+        <h3>2. Auditoría de Ingredientes sin Trazabilidad</h3>
+        <p>Identifica los ingredientes que NUNCA han formado parte de un pedido a domicilio gestionado por empleados cuyo nombre comience por 'P'.</p>
     </div>
 
     <div class="question">
-        <h3>Pregunta 2: Productividad de Empleados</h3>
-        <p>Muestre el listado de empleados y el total de ingresos (suma de totales) que ha procesado cada uno.</p>
+        <h3>3. Maximización del Margen de Beneficio</h3>
+        <p>Determina qué cliente ha generado el mayor beneficio neto global (Ingresos - Costes de producción). Devuelve su email, nombre y beneficio total.</p>
     </div>
 
     <div class="question">
-        <h3>Pregunta 3: Clientes Premium</h3>
-        <p>Encuentre a todos los clientes que han realizado un gasto total superior a 100€ en el histórico de la bodega.</p>
+        <h3>4. Concentración de Consumo de Aceite de Oliva</h3>
+        <p>Localiza al cliente que ha consumido la mayor cantidad total de raciones que incluyan "Aceite de Oliva Virgen Extra".</p>
     </div>
 
     <div class="question">
-        <h3>Pregunta 4: Análisis de Márgenes</h3>
-        <p>Para cada plato, muestre su nombre y calcule el beneficio bruto (Precio ración - Coste de ingredientes asociados).</p>
+        <h3>5. Desglose de Facturación por Canal y Empleado</h3>
+        <p>Muestra la facturación total por empleado, separando pedidos a domicilio y pedidos en el local.</p>
     </div>
 
     <div class="question">
-        <h3>Pregunta 5: Horas Punta</h3>
-        <p>Muestre la distribución de pedidos realizados por cada hora del día para identificar los picos de trabajo.</p>
+        <h3>6. Identificación de Pedidos Extremos</h3>
+        <p>Obtén en una sola consulta el pedido más barato y el más caro, incluyendo ID, total, nombre del cliente y dirección.</p>
     </div>
 
     <div class="question">
-        <h3>Pregunta 6: Geografía de Pedidos</h3>
-        <p>Contabilice cuántos pedidos se han enviado a domicilio desglosados por Ciudad o Provincia.</p>
+        <h3>7. Exclusividad Geográfica de Platos</h3>
+        <p>Identifica platos solicitados ÚNICAMENTE por clientes del código postal '41004'.</p>
     </div>
 
     <div class="question">
-        <h3>Pregunta 7: Dependencia de Ingredientes</h3>
-        <p>Obtenga el nombre de los ingredientes que se utilizan en más de 3 platos distintos de la carta.</p>
+        <h3>8. Análisis de Gasto en Dominios Específicos</h3>
+        <p>Calcula el gasto total de clientes '@ejemplo.com' considerando solo pedidos SIN raciones completas.</p>
     </div>
 
     <div class="question">
-        <h3>Pregunta 8: Resumen Impositivo</h3>
-        <p>Calcule la suma total recaudada hoy, mostrando el Subtotal base, el IVA del 21% y el importe Total final.</p>
+        <h3>9. Densidad de Clientes y Volumen por Código Postal</h3>
+        <p>Informa sobre el número de clientes y volumen de gasto total por cada código postal, ordenado por gasto descendente.</p>
     </div>
 
     <div class="question">
-        <h3>Pregunta 9: Alerta de Costes</h3>
-        <p>Indique los ingredientes cuyo coste sea superior a 5€/kg que formen parte de platos con un precio de venta superior a 15€.</p>
+        <h3>10. Evaluación de Desempeño en Comandas Complejas</h3>
+        <p>Identifica empleados que han gestionado pedidos con 3 o más platos distintos. Muestra su nombre, número de pedidos y ticket medio.</p>
     </div>
 
     <div class="question">
-        <h3>Pregunta 10: Cliente Estrella</h3>
-        <p>Muestre el nombre y el correo electrónico del cliente que ha realizado el mayor número de pedidos individuales.</p>
+        <h3>11. Fidelización en Promoción Especial Jeremías</h3>
+        <p>Lista clientes 'Jeremías%' con 20 o más pedidos a domicilio a una misma dirección.</p>
+    </div>
+
+    <div class="question">
+        <h3>12. Gestión de Comandas Automatizada (Procedimientos)</h3>
+        <p>Demuestra el uso del procedimiento `AbrirPedido` para el cliente 'jeremiaselcocas@gmail.com' en 'Calle Larios 12'.</p>
+    </div>
+
+    <div class="question">
+        <h3>13. Modificación de Comanda: Lógica de Cortesía</h3>
+        <p>Añade 5 raciones de 'Secreto Ibérico' como cortesía (gratuito) al pedido anterior.</p>
+    </div>
+
+    <div class="question">
+        <h3>14. Finalización y Recálculo Impositivo</h3>
+        <p>Añade 2 raciones de 'Chuletas de Cordero' (con cargo) y verifica el recálculo del IVA (21%).</p>
+    </div>
+
+    <div class="question">
+        <h3>15. Auditoría de Rentabilidad Estratégica (Vistas)</h3>
+        <p>Crea una vista `VistaRentabilidad` que resuma el éxito económico de cada plato (Ingresos vs Costes) y muestra el ranking final.</p>
     </div>
 
     <div class="footer">
-        <p>Evaluación SQL - Poly Bodeguita 2026</p>
+        <p>Poly Bodeguita Academy - Departamento de Informática - 2026</p>
     </div>
 </body>
 </html>

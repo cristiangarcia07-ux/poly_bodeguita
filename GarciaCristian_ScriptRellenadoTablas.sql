@@ -549,3 +549,33 @@ DELIMITER //
 CALL GenerarClientesAleatorios(1000);
 CALL GenerarPedidosAleatorios(500);
 DELIMITER ;
+-- Auditoría de Rentabilidad por Plato (Vista)
+-- Esta consulta genera una vista que analiza el rendimiento económico de toda la carta.
+DROP VIEW IF EXISTS VistaRentabilidad;
+CREATE VIEW VistaRentabilidad AS
+SELECT 
+    pl.nombre AS nombre_plato,
+    SUM(pp.cantidad) AS total_raciones_servidas,
+    ROUND(SUM(pp.cantidad * pp.precio_unitario), 2) AS ingresos_totales,
+    ROUND(SUM(
+        pp.cantidad * (
+            SELECT SUM(ip.cantidadracioncompletaenkg * i.precio_x_euro)
+            FROM ingrediente_plato ip
+            JOIN Ingredientes i ON ip.ingrediente_id = i.id
+            WHERE ip.plato_id = pl.id
+        )
+    ), 2) AS coste_total_produccion,
+    ROUND(
+        SUM(pp.cantidad * pp.precio_unitario) - 
+        SUM(pp.cantidad * (
+            SELECT SUM(ip.cantidadracioncompletaenkg * i.precio_x_euro)
+            FROM ingrediente_plato ip
+            JOIN Ingredientes i ON ip.ingrediente_id = i.id
+            WHERE ip.plato_id = pl.id
+        )), 2
+    ) AS beneficio_neto
+FROM platos pl
+JOIN platos_pedidos pp ON pl.id = pp.plato_id
+GROUP BY pl.id, pl.nombre;
+
+SELECT * FROM VistaRentabilidad ORDER BY beneficio_neto DESC;
