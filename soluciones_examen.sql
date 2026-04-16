@@ -73,20 +73,13 @@ GROUP BY c.id, c.nombre, c.apellido1, c.email
 ORDER BY total_raciones_aceite DESC
 LIMIT 1;
 
--- 5. Rendimiento Anual Reescrito (Sin CASE WHEN)
-WITH Domicilio AS (
-    SELECT empleado_id, SUM(total) as domicilio
-    FROM pedidos WHERE es_a_domicilio = TRUE GROUP BY empleado_id
-), Local_Ped AS (
-    SELECT empleado_id, SUM(total) as local_factura
-    FROM pedidos WHERE es_a_domicilio = FALSE GROUP BY empleado_id
-)
+-- 5. Rendimiento Anual Reescrito (Sin CASE WHEN, CTE ni Subconsultas)
 SELECT e.usuario, 
-       COALESCE(d.domicilio, 0) AS facturado_domicilio, 
-       COALESCE(l.local_factura, 0) AS facturado_local
+       SUM(p.total * p.es_a_domicilio) AS facturado_domicilio, 
+       SUM(p.total * (1 - p.es_a_domicilio)) AS facturado_local
 FROM empleados e
-LEFT JOIN Domicilio d ON e.id = d.empleado_id
-LEFT JOIN Local_Ped l ON e.id = l.empleado_id;
+LEFT JOIN pedidos p ON e.id = p.empleado_id
+GROUP BY e.id, e.usuario;
 
 -- 6. El más barato y el más caro
 (SELECT 'MAS BARATO' as tipo, p.id, p.total, c.nombre, d.Direccion

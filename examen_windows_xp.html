@@ -332,17 +332,11 @@ LIMIT 1;</pre>
                 <p>Realiza un análisis comparativo de la eficiencia de ventas de la plantilla. Debes mostrar la facturación total gestionada por cada empleado (identificado por su `usuario`), desglosando la información en dos columnas diferenciadas: la recaudación proveniente exclusivamente de pedidos a domicilio (`Facturado_Domicilio`) y la recaudación generada en el local físico (`Facturado_Local`). Este desglose es fundamental para la toma de decisiones operativas sobre el personal de reparto.</p>
                 <button class="btn-xp" onclick="toggleSql('sql-5')">DESENCRIPTAR SQL</button>
                 <pre id="sql-5">SELECT e.usuario, 
-       COALESCE(d.domicilio, 0) AS facturado_domicilio, 
-       COALESCE(l.local_factura, 0) AS facturado_local
+       SUM(p.total * p.es_a_domicilio) AS facturado_domicilio, 
+       SUM(p.total * (1 - p.es_a_domicilio)) AS facturado_local
 FROM empleados e
-LEFT JOIN (
-    SELECT empleado_id, SUM(total) as domicilio
-    FROM pedidos WHERE es_a_domicilio = TRUE GROUP BY empleado_id
-) d ON e.id = d.empleado_id
-LEFT JOIN (
-    SELECT empleado_id, SUM(total) as local_factura
-    FROM pedidos WHERE es_a_domicilio = FALSE GROUP BY empleado_id
-) l ON e.id = l.empleado_id;</pre>
+LEFT JOIN pedidos p ON e.id = p.empleado_id
+GROUP BY e.id, e.usuario;</pre>
             </div>
             <hr>
 
