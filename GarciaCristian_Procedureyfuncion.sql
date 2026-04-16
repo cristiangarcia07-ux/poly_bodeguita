@@ -132,5 +132,22 @@ BEGIN
     RETURN v_email;
 END //
 
+-- 3. Función para obtener el ID del Pedido más caro
+CREATE OR REPLACE FUNCTION ObtenerIDPedidoMasCaro() 
+RETURNS INT
+DETERMINISTIC
+READS SQL DATA
+BEGIN
+    DECLARE v_id INT;
+    SELECT id INTO v_id FROM pedidos ORDER BY total DESC LIMIT 1;
+    RETURN v_id;
+END //
+
 DELIMITER ;
-DELIMITER ;
+
+-- 2. Vista de los 10 pedidos más caros
+CREATE OR REPLACE VIEW Top10PedidosMasCaros AS
+SELECT id, total, cliente_id, empleado_id, es_a_domicilio
+FROM pedidos
+ORDER BY total DESC
+LIMIT 10;
