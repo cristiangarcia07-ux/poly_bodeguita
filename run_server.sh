@@ -111,8 +111,8 @@ PORT=5500
 
 # 1. Start the Containers (Database and API)
 echo "📦 Starting Dynamic API Containers..."
-(cd swagger-ui && docker compose up)
-
+(cd swagger-ui && docker compose up -d)
+# weno
 # 2. Initialize/Populate Database
 echo "⏳ Waiting for MariaDB to be ready (10s)..."
 sleep 10
