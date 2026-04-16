@@ -111,13 +111,10 @@ echo "🛑 Parando el servidor y los contenedores Docker..."
 echo "------------------------------------------------"
 echo "  📦 Deteniendo la API en Swagger UI..."
 (cd swagger-ui && docker compose down)
-
-echo "  🗄️  Deteniendo el servidor MariaDB..."
-(cd mariadb && docker compose down)
-echo "------------------------------------------------"
-
 # Kill python http.server just in case they ran it in the background
 echo "  🐍 Deteniendo el servidor web local..."
 pkill -f "python3 -m http.server" || echo "  (El servidor web ya estaba detenido)"
 
 echo "✅ ¡Todo detenido y limpio correctamente!"
+sleep 0.5
+clear
