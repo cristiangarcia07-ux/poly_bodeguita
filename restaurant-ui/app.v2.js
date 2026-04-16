@@ -26,6 +26,13 @@ function initEventListeners() {
     document.querySelector('.close-modal').addEventListener('click', closeModal);
     document.getElementById('plate-search-input').addEventListener('input', filterPlates);
     document.getElementById('submit-order-btn').addEventListener('click', submitOrder);
+    document.getElementById('add-client-btn').addEventListener('click', () => {
+        document.getElementById('client-modal').style.display = 'flex';
+    });
+    document.querySelector('.close-client-modal').addEventListener('click', () => {
+        document.getElementById('client-modal').style.display = 'none';
+    });
+    document.getElementById('save-client-btn').addEventListener('click', saveClient);
 
     document.querySelectorAll('.toggle-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -251,20 +258,28 @@ window.removeItem = (idx) => { state.currentNewOrder.items.splice(idx, 1); updat
 async function submitOrder() {
     console.log('--- Order Submission Started ---');
     const o = state.currentNewOrder;
-    if (!o.clientId || o.items.length === 0) return showToast('Check client and items', 'error');
+    const clientId = parseInt(o.clientId);
+    if (!clientId || isNaN(clientId)) return showToast('Please select a valid client', 'error');
+    if (o.items.length === 0) return showToast('Add at least one item', 'error');
 
     const btn = document.getElementById('submit-order-btn');
     btn.disabled = true;
     btn.innerText = 'Creating...';
 
     try {
-        const subtotal = o.items.reduce((acc, p) => acc + parseFloat(p.precio_x_racion), 0);
+        const subtotal = o.items.reduce((acc, p) => {
+            const val = parseFloat(p.precio_x_racion) || 0;
+            return acc + val;
+        }, 0);
         const total = (subtotal * 1.21) + (o.type === 'delivery' ? 2.50 : 0);
+        
+        if (isNaN(subtotal) || isNaN(total)) throw new Error('Price Calculation Error: NaN detected');
+
         let orderId = o.id;
 
         if (orderId) {
             console.log('Step: Updating Existing Order...');
-            await fetch(`${API_BASE}/pedidos/${orderId}`, {
+            const updateResp = await fetch(`${API_BASE}/pedidos/${orderId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
@@ -274,20 +289,27 @@ async function submitOrder() {
                     esadomicilio: o.type === 'delivery' ? 1 : 0 
                 })
             });
+            if (!updateResp.ok) {
+                const errorData = await updateResp.text();
+                throw new Error(`Update Error: ${updateResp.status} - ${errorData}`);
+            }
         } else {
             console.log('Step 1: Creating Order Header...');
             const addrEl = document.getElementById('address-select');
             const addrVal = addrEl ? addrEl.value : null;
             
             const body = {
-                total, subtotal,
-                cliente_id: parseInt(o.clientId),
-                empleado_id: state.currentUser ? state.currentUser.id : 1,
+                total: parseFloat(total),
+                subtotal: parseFloat(subtotal),
+                cliente_id: Number(o.clientId),
+                empleado_id: Number(state.currentUser ? state.currentUser.id : 1),
                 esadomicilio: o.type === 'delivery' ? 1 : 0,
-                direccion_id: (o.type === 'delivery' && addrVal) ? parseInt(addrVal) : null,
-                abierto: 1
+                direccion_id: (o.type === 'delivery' && addrVal) ? Number(addrVal) : null,
+                abierto: 1,
+                fecha: new Date().toISOString().split('T')[0],
+                time: new Date().toLocaleTimeString('it-IT') // HH:mm:ss
             };
-            console.log('Payload:', body);
+            console.log('Sending Order Header Payload:', JSON.stringify(body));
 
             const orderResp = await fetch(`${API_BASE}/pedidos`, {
                 method: 'POST',
@@ -295,7 +317,10 @@ async function submitOrder() {
                 body: JSON.stringify(body)
             });
 
-            if (!orderResp.ok) throw new Error(`Order Header Error: ${orderResp.status}`);
+            if (!orderResp.ok) {
+                const errorData = await orderResp.text();
+                throw new Error(`Order Header Error: ${orderResp.status} - ${errorData}`);
+            }
             const newOrder = await orderResp.json();
             orderId = newOrder.id;
             console.log('Success: Order ID created:', orderId);
@@ -334,6 +359,34 @@ async function submitOrder() {
     } finally {
         btn.disabled = false;
         btn.innerText = 'Confirm Order';
+    }
+}
+
+async function saveClient() {
+    const data = {
+        nombre: document.getElementById('c-name').value.trim(),
+        apellido1: document.getElementById('c-surname1').value.trim(),
+        apellido2: document.getElementById('c-surname2').value.trim() || null,
+        email: document.getElementById('c-email').value.trim(),
+        telefono: document.getElementById('c-phone').value.trim() || null,
+        username: document.getElementById('c-user').value.trim() || null,
+        password: document.getElementById('c-pass').value.trim() || 'poly123'
+    };
+
+    if (!data.nombre || !data.apellido1 || !data.email) return showToast('Please fill required fields', 'error');
+
+    try {
+        const resp = await fetch(`${API_BASE}/clientes`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        if (!resp.ok) throw new Error(`Save failed: ${resp.status}`);
+        showToast('Client saved!', 'success');
+        document.getElementById('client-modal').style.display = 'none';
+        await loadDashboard(); 
+    } catch (err) {
+        showToast(err.message, 'error');
     }
 }
 

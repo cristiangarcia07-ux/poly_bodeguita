@@ -255,9 +255,9 @@ Detalle de línea de cada pedido (qué platos contiene).
 |---------|------|---------------|-------------|
 | `pedido_id` | INT | PK, FK → pedidos | Pedido al que pertenece |
 | `plato_id` | INT | PK, FK → platos | Plato seleccionado |
-| `media o completa?` | VARCHAR(10) | NOT NULL | `'media'` o `'completa'` |
+| `tipo_racion` | VARCHAR(10) | NOT NULL | `'media'` o `'completa'` |
 | `cantidad` | INT | NOT NULL | Unidades pedidas |
-| `precio unitario` | DECIMAL(6,2) | NOT NULL | Precio unitario aplicado |
+| `precio_unitario` | DECIMAL(6,2) | NOT NULL | Precio unitario aplicado |
 
 #### `Ingredientes`
 Ingredientes base con sus precios de mercado.
@@ -343,21 +343,22 @@ Aplicación Single Page (SPA) compuesta por:
 
 | Archivo | Propósito |
 |---------|-----------|
-| `index.html` | Estructura HTML con pantallas de login y dashboard |
+| `index.html` | Estructura HTML con pantallas de login, dashboard y gestión de clientes |
 | `style.css` | Estilos glassmorphism, dark mode, responsive |
-| `app.js` | Lógica completa: autenticación, CRUD pedidos, gestión del carrito |
+| `app.v2.js` | Lógica completa (V2): autenticación, CRUD pedidos, gestión de clientes, carrito |
 
 #### Funcionalidades:
 
-1. **Login**: Autentica empleados contra la tabla `empleados` vía la API. Guarda la sesión en `localStorage`.
+1. **Login**: Autentica empleados contra la tabla `empleados` vía la API.
 2. **Dashboard**: Muestra estadísticas (pedidos activos, revenue total) y la tabla de pedidos recientes.
-3. **Crear Pedido**: Modal con:
+3. **Gestión de Clientes**: Feature para añadir nuevos clientes al sistema directamente desde el portal.
+4. **Crear Pedido**: Modal con:
    - Selector de cliente
    - Tipo de pedido (local / domicilio)
    - Selector de dirección (solo para domicilio)
    - Grid de platos con búsqueda
    - Carrito con resumen (subtotal, IVA 21%, recargo domicilio 2.50€)
-4. **Editar/Cerrar Pedidos**: Acciones directas desde la tabla de pedidos.
+5. **Editar/Cerrar/Reabrir Pedidos**: Ciclo de vida completo del pedido desde la tabla.
 
 #### Configuración de Red
 
@@ -414,7 +415,7 @@ Añade un plato a un pedido existente:
 
 ### `CerrarPedido(p_pedido_id)`
 
-Marca un pedido como cerrado (`abierto? = FALSE`).
+Marca un pedido como cerrado (`abierto = FALSE`).
 
 ---
 
@@ -478,9 +479,9 @@ poly_bodeguita/
 ├── 🛑 stop_server.sh                         ← Script de parada limpia
 │
 ├── 📁 restaurant-ui/                         ← Interfaz web para empleados
-│   ├── index.html                            ←   Estructura HTML (login + dashboard)
+│   ├── index.html                            ←   Estructura HTML (login + dashboard + clientes)
 │   ├── style.css                             ←   Estilos (glassmorphism, dark mode)
-│   └── app.js                                ←   Lógica JS (auth, CRUD, carrito)
+│   └── app.v2.js                             ←   Lógica JS (V2: auth, CRUD, clientes, carrito)
 │
 ├── 📁 swagger-ui/                            ← Configuración del contenedor API
 │   └── docker-compose.yml                    ←   Definición del servicio API REST

@@ -209,7 +209,7 @@ BEGIN
     DECLARE j INT DEFAULT 0;
     -- (Logic matching schema.sql)
     WHILE i < num_pedidos DO
-        INSERT INTO pedidos (total, subtotal, cliente_id, empleado_id, `esadomicilio?`, direccion_id, `abierto?`)
+        INSERT INTO pedidos (total, subtotal, cliente_id, empleado_id, esadomicilio, direccion_id, abierto)
         VALUES (0, 0, 1, 1, FALSE, NULL, FALSE);
         SET i = i + 1;
     END WHILE;

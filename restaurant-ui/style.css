@@ -207,6 +207,8 @@ input:focus, select:focus {
 /* Actions */
 .actions-container {
     margin-bottom: 2rem;
+    display: flex;
+    gap: 1.5rem;
 }
 
 /* Table */
@@ -399,6 +401,12 @@ td {
     background: var(--primary);
     color: black;
     border-color: var(--primary);
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
 }
 
 /* Modifying Orders */
