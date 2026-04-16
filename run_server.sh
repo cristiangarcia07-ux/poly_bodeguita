@@ -119,7 +119,7 @@ echo "⏳ Waiting for MariaDB to be ready (10s)..."
 sleep 10
 
 echo "🗄️  Populating MariaDB Container with schema.sql..."
-cat schema.sql | docker exec -i mariadb_container mysql -u root -p'54321Ba##'
+docker exec -i mariadb_container mariadb -u root -p54321Ba## < schema.sql
 
 # 3. Start the Python HTTP server
 cat << 'EOF'
