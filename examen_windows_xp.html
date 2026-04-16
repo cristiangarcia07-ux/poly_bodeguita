@@ -276,35 +276,16 @@ WHERE i.id NOT IN (
                 <h4>3. Maximización del Margen de Beneficio</h4>
                 <p>Determina qué cliente ha generado el mayor impacto económico positivo para la empresa sumando la rentabilidad de todas sus operaciones comerciales. El beneficio neto se debe calcular restando el coste total de fabricación (basado en la composición de ingredientes y el tipo de ración, media o completa) al precio de venta facturado. La consulta debe devolver el email institucional del cliente, su nombre completo y la métrica exacta del beneficio histórico generado tras la deducción de costes de producción.</p>
                 <button class="btn-xp" onclick="toggleSql('sql-3')">DESENCRIPTAR SQL</button>
-                <pre id="sql-3">SELECT c.email, c.nombre, COALESCE(ing.total_ingreso, 0) - COALESCE(ca.coste_final, 0) AS beneficio_global
-FROM clientes c
-INNER JOIN (
-    SELECT p.cliente_id, SUM(pp.precio_unitario * pp.cantidad) as total_ingreso
-    FROM pedidos p
-    INNER JOIN platos_pedidos pp ON p.id = pp.pedido_id
-    GROUP BY p.cliente_id
-) ing ON c.id = ing.cliente_id
-LEFT JOIN (
-    SELECT cliente_id, SUM(total_coste) as coste_final
-    FROM (
-        SELECT p.cliente_id, SUM(ip.cantidadracioncompletaenkg * i.precio_x_euro * pp.cantidad) as total_coste
-        FROM pedidos p
-        INNER JOIN platos_pedidos pp ON p.id = pp.pedido_id
-        INNER JOIN ingrediente_plato ip ON pp.plato_id = ip.plato_id
-        INNER JOIN Ingredientes i ON ip.ingrediente_id = i.id
-        WHERE pp.tipo_racion = 'completa'
-        GROUP BY p.cliente_id
-        UNION ALL
-        SELECT p.cliente_id, SUM(ip.cantidadracionmediaenkg * i.precio_x_euro * pp.cantidad) as total_coste
-        FROM pedidos p
-        INNER JOIN platos_pedidos pp ON p.id = pp.pedido_id
-        INNER JOIN ingrediente_plato ip ON pp.plato_id = ip.plato_id
-        INNER JOIN Ingredientes i ON ip.ingrediente_id = i.id
-        WHERE pp.tipo_racion = 'media'
-        GROUP BY p.cliente_id
-    ) Costes
-    GROUP BY cliente_id
-) ca ON c.id = ca.cliente_id
+                <pre id="sql-3">SELECT c.email, c.nombre, 
+       SUM(pp.precio_unitario * pp.cantidad / (SELECT COUNT(*) FROM ingrediente_plato WHERE plato_id = pp.plato_id)) 
+       - SUM(pp.cantidad * i.precio_x_euro * (ip.cantidadracioncompletaenkg * (pp.tipo_racion = 'completa') + ip.cantidadracionmediaenkg * (pp.tipo_racion = 'media'))) 
+       AS beneficio_global
+FROM clientes c, pedidos p, platos_pedidos pp, ingrediente_plato ip, Ingredientes i
+WHERE c.id = p.cliente_id 
+  AND p.id = pp.pedido_id 
+  AND pp.plato_id = ip.plato_id 
+  AND ip.ingrediente_id = i.id
+GROUP BY c.id, c.nombre, c.email
 ORDER BY beneficio_global DESC
 LIMIT 1;</pre>
             </div>

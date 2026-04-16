@@ -25,39 +25,17 @@ WHERE i.id NOT IN (
     AND e.nombre LIKE 'P%'
 );
 
--- 3. El Benefactor Supremo (Sin CASE WHEN)
-WITH Ingresos AS (
-    SELECT p.cliente_id, SUM(pp.precio_unitario * pp.cantidad) as total_ingreso
-    FROM pedidos p
-    INNER JOIN platos_pedidos pp ON p.id = pp.pedido_id
-    GROUP BY p.cliente_id
-),
-Costes AS (
-    SELECT p.cliente_id, SUM(ip.cantidadracioncompletaenkg * i.precio_x_euro * pp.cantidad) as total_coste
-    FROM pedidos p
-    INNER JOIN platos_pedidos pp ON p.id = pp.pedido_id
-    INNER JOIN ingrediente_plato ip ON pp.plato_id = ip.plato_id
-    INNER JOIN Ingredientes i ON ip.ingrediente_id = i.id
-    WHERE pp.tipo_racion = 'completa'
-    GROUP BY p.cliente_id
-    UNION ALL
-    SELECT p.cliente_id, SUM(ip.cantidadracionmediaenkg * i.precio_x_euro * pp.cantidad) as total_coste
-    FROM pedidos p
-    INNER JOIN platos_pedidos pp ON p.id = pp.pedido_id
-    INNER JOIN ingrediente_plato ip ON pp.plato_id = ip.plato_id
-    INNER JOIN Ingredientes i ON ip.ingrediente_id = i.id
-    WHERE pp.tipo_racion = 'media'
-    GROUP BY p.cliente_id
-),
-CostesAgrupados AS (
-    SELECT cliente_id, SUM(total_coste) as coste_final
-    FROM Costes
-    GROUP BY cliente_id
-)
-SELECT c.email, c.nombre, COALESCE(ing.total_ingreso, 0) - COALESCE(ca.coste_final, 0) AS beneficio_global
-FROM clientes c
-INNER JOIN Ingresos ing ON c.id = ing.cliente_id
-LEFT JOIN CostesAgrupados ca ON c.id = ca.cliente_id
+-- 3. El Benefactor Supremo (Sin Subconsultas en FROM ni CASE WHEN)
+SELECT c.email, c.nombre, 
+       SUM(pp.precio_unitario * pp.cantidad / (SELECT COUNT(*) FROM ingrediente_plato WHERE plato_id = pp.plato_id)) 
+       - SUM(pp.cantidad * i.precio_x_euro * (ip.cantidadracioncompletaenkg * (pp.tipo_racion = 'completa') + ip.cantidadracionmediaenkg * (pp.tipo_racion = 'media'))) 
+       AS beneficio_global
+FROM clientes c, pedidos p, platos_pedidos pp, ingrediente_plato ip, Ingredientes i
+WHERE c.id = p.cliente_id 
+  AND p.id = pp.pedido_id 
+  AND pp.plato_id = ip.plato_id 
+  AND ip.ingrediente_id = i.id
+GROUP BY c.id, c.nombre, c.email
 ORDER BY beneficio_global DESC
 LIMIT 1;
 
