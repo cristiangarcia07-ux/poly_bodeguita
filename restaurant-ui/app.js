@@ -117,7 +117,7 @@ function renderOrdersTable() {
     tbody.innerHTML = '';
     state.orders.slice().reverse().slice(0, 15).forEach(order => {
         const client = state.clients.find(c => c.id === order.cliente_id);
-        const isOpen = order['abierto?'] === 1 || order['abierto?'] === true;
+        const isOpen = order.abierto === 1 || order.abierto === true;
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>#${order.id}</td>
@@ -135,7 +135,7 @@ function renderOrdersTable() {
 }
 
 function updateStats() {
-    const openOrders = state.orders.filter(o => o['abierto?'] === 1 || o['abierto?'] === true);
+    const openOrders = state.orders.filter(o => o.abierto === 1 || o.abierto === true);
     document.getElementById('count-active').innerText = openOrders.length;
     const total = state.orders.reduce((acc, curr) => acc + parseFloat(curr.total || 0), 0);
     document.getElementById('revenue-today').innerText = `${total.toFixed(2)}€`;
@@ -191,7 +191,7 @@ async function openOrderModal(orderId = null) {
         state.currentNewOrder.id = orderId;
         const order = state.orders.find(o => o.id === orderId);
         state.currentNewOrder.clientId = order.cliente_id;
-        state.currentNewOrder.type = order.es_a_domicilio ? 'delivery' : 'local';
+        state.currentNewOrder.type = order.esadomicilio ? 'delivery' : 'local';
         document.getElementById('client-select').value = order.cliente_id;
         document.querySelectorAll('.toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.type === state.currentNewOrder.type));
         try {
@@ -210,14 +210,15 @@ window.editOrder = openOrderModal;
 window.closeOrder = async (id) => {
     try {
         const order = state.orders.find(o => o.id === id);
-        const newStatus = (order['abierto?'] === 1 || order['abierto?'] === true) ? 0 : 1;
+        const isOpen = order.abierto === 1 || order.abierto === true;
+        const newStatus = isOpen ? 0 : 1;
         await fetch(`${API_BASE}/pedidos/${id}`, { 
             method: 'PUT', 
             headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify({ 'abierto?': newStatus }) 
+            body: JSON.stringify({ abierto: newStatus }) 
         });
-        loadDashboard();
-    } catch (e) {}
+        await loadDashboard();
+    } catch (e) { console.error('Close Error:', e); }
 };
 
 function closeModal() { document.getElementById('order-modal').style.display = 'none'; }
@@ -270,7 +271,7 @@ async function submitOrder() {
                     total, 
                     subtotal, 
                     cliente_id: parseInt(o.clientId), 
-                    'esadomicilio?': o.type === 'delivery' ? 1 : 0 
+                    esadomicilio: o.type === 'delivery' ? 1 : 0 
                 })
             });
         } else {
@@ -282,8 +283,9 @@ async function submitOrder() {
                 total, subtotal,
                 cliente_id: parseInt(o.clientId),
                 empleado_id: state.currentUser ? state.currentUser.id : 1,
-                'esadomicilio?': o.type === 'delivery' ? 1 : 0,
-                direccion_id: (o.type === 'delivery' && addrVal) ? parseInt(addrVal) : null
+                esadomicilio: o.type === 'delivery' ? 1 : 0,
+                direccion_id: (o.type === 'delivery' && addrVal) ? parseInt(addrVal) : null,
+                abierto: 1
             };
             console.log('Payload:', body);
 
@@ -315,9 +317,9 @@ async function submitOrder() {
                     body: JSON.stringify({
                         pedido_id: orderId,
                         plato_id: item.id,
-                        'media o completa?': 'completa',
+                        tipo_racion: 'completa',
                         cantidad: item.cantidad,
-                        'precio unitario': item.precio_x_racion
+                        precio_unitario: item.precio_x_racion
                     })
                 });
                 if (!res.ok) console.warn(`Item ${k} failed: ${res.status}`);

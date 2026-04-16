@@ -21,7 +21,7 @@ WHERE i.id NOT IN (
     INNER JOIN platos_pedidos pp ON ip.plato_id = pp.plato_id
     INNER JOIN pedidos p ON pp.pedido_id = p.id
     INNER JOIN empleados e ON p.empleado_id = e.id
-    WHERE p.es_a_domicilio = TRUE 
+    WHERE p.esadomicilio = TRUE 
     AND e.nombre LIKE 'P%'
 );
 
@@ -53,8 +53,8 @@ LIMIT 1;
 
 -- 5. Rendimiento Anual Reescrito (Sin CASE WHEN, CTE ni Subconsultas)
 SELECT e.usuario, 
-       SUM(p.total * p.es_a_domicilio) AS facturado_domicilio, 
-       SUM(p.total * (1 - p.es_a_domicilio)) AS facturado_local
+       SUM(p.total * p.esadomicilio) AS facturado_domicilio, 
+       SUM(p.total * (1 - p.esadomicilio)) AS facturado_local
 FROM empleados e
 LEFT JOIN pedidos p ON e.id = p.empleado_id
 GROUP BY e.id, e.usuario;
@@ -130,7 +130,7 @@ SELECT c.nombre, d.id d.Direccion, COUNT(p.id) AS recuento_pedidos
 FROM clientes c
 INNER JOIN pedidos p ON c.id = p.cliente_id
 INNER JOIN Direcciones d ON p.direccion_id = d.id
-WHERE c.nombre LIKE 'jeremias%' AND p.es_a_domicilio = TRUE
+WHERE c.nombre LIKE 'jeremias%' AND p.esadomicilio = TRUE
 GROUP BY c.id, c.nombre, d.id, d.Direccion
 HAVING COUNT(p.id) >= 20
 ORDER BY recuento_pedidos DESC;

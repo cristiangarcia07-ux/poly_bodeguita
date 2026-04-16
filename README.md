@@ -230,9 +230,11 @@ Cabecera de cada pedido realizado.
 | `subtotal` | DECIMAL(10,2) | NOT NULL | Suma de los platos sin impuestos |
 | `cliente_id` | INT | NOT NULL, FK → clientes | Cliente que realiza el pedido |
 | `empleado_id` | INT | NOT NULL, FK → empleados | Empleado que atiende |
-| `esadomicilio?` | BOOLEAN | NOT NULL, DEFAULT FALSE | Si el pedido es para entregar |
+| `esadomicilio` | BOOLEAN | NOT NULL, DEFAULT FALSE | Si el pedido es para entregar |
 | `direccion_id` | INT | Nullable, FK → Direcciones | Dirección de entrega (si aplica) |
-| `abierto?` | BOOLEAN | NOT NULL, DEFAULT TRUE | Estado del pedido (abierto/cerrado) |
+| `abierto` | BOOLEAN | NOT NULL, DEFAULT TRUE | Estado del pedido (abierto/cerrado) |
+| `fecha` | DATE | DEFAULT CURRENT_DATE | Fecha del pedido |
+| `time` | TIME | DEFAULT CURRENT_TIME | Hora del pedido |
 
 #### `platos`
 Carta del restaurante.

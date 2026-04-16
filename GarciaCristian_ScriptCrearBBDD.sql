@@ -52,9 +52,11 @@ CREATE TABLE pedidos (
     subtotal DECIMAL(10,2) NOT NULL,
     cliente_id INT NOT NULL,
     empleado_id INT NOT NULL,
-    `esadomicilio?` BOOLEAN NOT NULL DEFAULT FALSE,
+    esadomicilio BOOLEAN NOT NULL DEFAULT FALSE,
     direccion_id INT,
-    `abierto?` BOOLEAN NOT NULL DEFAULT TRUE,
+    abierto BOOLEAN NOT NULL DEFAULT TRUE,
+    fecha DATE DEFAULT (CURRENT_DATE),
+    time TIME DEFAULT (CURRENT_TIME),
     FOREIGN KEY (cliente_id) REFERENCES clientes(id),
     FOREIGN KEY (empleado_id) REFERENCES empleados(id),
     FOREIGN KEY (direccion_id) REFERENCES Direcciones(id)
@@ -72,9 +74,9 @@ CREATE TABLE platos (
 CREATE TABLE platos_pedidos (
     pedido_id INT NOT NULL,
     plato_id INT NOT NULL,
-    `media o completa?` VARCHAR(10) NOT NULL, -- Corresponds to 'media o completa?'
+    tipo_racion VARCHAR(10) NOT NULL,
     cantidad INT NOT NULL,
-    `precio unitario` DECIMAL(6,2) NOT NULL,
+    precio_unitario DECIMAL(6,2) NOT NULL,
     PRIMARY KEY (pedido_id, plato_id), 
     FOREIGN KEY (pedido_id) REFERENCES pedidos(id),
     FOREIGN KEY (plato_id) REFERENCES platos(id)

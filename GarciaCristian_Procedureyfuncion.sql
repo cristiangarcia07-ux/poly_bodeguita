@@ -7,7 +7,7 @@ CREATE PROCEDURE AbrirPedido(
 )
 BEGIN
     -- Insertar el pedido con todo a cero y ABIERTO
-    INSERT INTO pedidos (total, subtotal, cliente_id, empleado_id, `esadomicilio?`, direccion_id, `abierto?`)
+    INSERT INTO pedidos (total, subtotal, cliente_id, empleado_id, esadomicilio, direccion_id, abierto)
     VALUES (0, 0, p_cliente_id, p_empleado_id, p_es_a_domicilio, p_direccion_id, TRUE);
     
     -- Consultar el pedido por ID para poder mostrarlo e identificarlo
@@ -48,15 +48,15 @@ BEGIN
 
         -- Insertar los productos en platos_pedidos
         -- El PK es (pedido_id, plato_id), por lo que ON DUPLICATE solo maneja el mismo plato
-        INSERT INTO platos_pedidos (pedido_id, plato_id, `media o completa?`, cantidad, `precio unitario`)
+        INSERT INTO platos_pedidos (pedido_id, plato_id, tipo_racion, cantidad, precio_unitario)
         VALUES (p_pedido_id, p_plato_id, p_tipo_racion, p_cantidad, v_precio_unitario)
         ON DUPLICATE KEY UPDATE 
             cantidad = cantidad + p_cantidad,
-            `precio unitario` = VALUES(`precio unitario`),
-            `media o completa?` = VALUES(`media o completa?`);
+            precio_unitario = VALUES(precio_unitario),
+            tipo_racion = VALUES(tipo_racion);
 
         -- Sumar los productos y meterlos al subtotal
-        SELECT SUM(cantidad * `precio unitario`) INTO v_subtotal_acumulado 
+        SELECT SUM(cantidad * precio_unitario) INTO v_subtotal_acumulado 
         FROM platos_pedidos 
         WHERE pedido_id = p_pedido_id;
 
@@ -70,7 +70,7 @@ BEGIN
         SELECT * FROM pedidos WHERE id = p_pedido_id;
 
         -- Out: Detalle del Ticket
-        SELECT pl.nombre, pp.`media o completa?`, pp.cantidad, pp.`precio unitario`, (pp.cantidad * pp.`precio unitario`) AS total_linea
+        SELECT pl.nombre, pp.tipo_racion, pp.cantidad, pp.precio_unitario, (pp.cantidad * pp.precio_unitario) AS total_linea
         FROM platos_pedidos pp
         JOIN platos pl ON pp.plato_id = pl.id
         WHERE pp.pedido_id = p_pedido_id;
@@ -80,7 +80,7 @@ END //
 -- Procedimiento 3: Cerrar Pedido
 CREATE PROCEDURE CerrarPedido(IN p_pedido_id INT)
 BEGIN
-    UPDATE pedidos SET `abierto?` = FALSE WHERE id = p_pedido_id;
+    UPDATE pedidos SET abierto = FALSE WHERE id = p_pedido_id;
     SELECT * FROM pedidos WHERE id = p_pedido_id;
 END //
 
@@ -94,14 +94,14 @@ CREATE OR REPLACE VIEW RentabilidadPlatos AS
 SELECT 
     p.nombre AS Plato,
     SUM(pp.cantidad) AS Total_Vendido,
-    ROUND(SUM(pp.cantidad * pp.`precio unitario`), 2) AS Ingresos_Totales,
+    ROUND(SUM(pp.cantidad * pp.precio_unitario), 2) AS Ingresos_Totales,
     ROUND(SUM(pp.cantidad * (
         SELECT COALESCE(SUM(ip.cantidadracioncompletaenkg * i.precio_x_euro), 0)
         FROM ingrediente_plato ip
         JOIN Ingredientes i ON ip.ingrediente_id = i.id
         WHERE ip.plato_id = p.id
     )), 2) AS Coste_Ingredientes_Estimado,
-    ROUND(SUM(pp.cantidad * pp.`precio unitario`) - SUM(pp.cantidad * (
+    ROUND(SUM(pp.cantidad * pp.precio_unitario) - SUM(pp.cantidad * (
         SELECT COALESCE(SUM(ip.cantidadracioncompletaenkg * i.precio_x_euro), 0)
         FROM ingrediente_plato ip
         JOIN Ingredientes i ON ip.ingrediente_id = i.id
@@ -144,7 +144,7 @@ DELIMITER ;
 
 -- 4. Vista de los 10 pedidos más caros
 CREATE OR REPLACE VIEW Top10PedidosMasCaros AS
-SELECT id, total, cliente_id, empleado_id, `esadomicilio?`
+SELECT id, total, cliente_id, empleado_id, esadomicilio, fecha, time
 FROM pedidos
 ORDER BY total DESC
 LIMIT 10;
