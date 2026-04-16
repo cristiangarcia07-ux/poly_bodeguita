@@ -51,9 +51,9 @@ CREATE TABLE pedidos (
     subtotal DECIMAL(10,2) NOT NULL,
     cliente_id INT NOT NULL,
     empleado_id INT NOT NULL,
-    es_a_domicilio BOOLEAN NOT NULL DEFAULT FALSE,
+    `esadomicilio?` BOOLEAN NOT NULL DEFAULT FALSE,
     direccion_id INT,
-    abierto BOOLEAN NOT NULL DEFAULT TRUE,
+    `abierto?` BOOLEAN NOT NULL DEFAULT TRUE,
     FOREIGN KEY (cliente_id) REFERENCES clientes(id),
     FOREIGN KEY (empleado_id) REFERENCES empleados(id),
     FOREIGN KEY (direccion_id) REFERENCES Direcciones(id)
@@ -71,10 +71,10 @@ CREATE TABLE platos (
 CREATE TABLE platos_pedidos (
     pedido_id INT NOT NULL,
     plato_id INT NOT NULL,
-    tipo_racion VARCHAR(10) NOT NULL, -- Corresponds to 'media o completa?'
+    `media o completa?` VARCHAR(10) NOT NULL, -- Corresponds to 'media o completa?'
     cantidad INT NOT NULL,
-    precio_unitario DECIMAL(6,2) NOT NULL,
-    PRIMARY KEY (pedido_id, plato_id, tipo_racion), 
+    `precio unitario` DECIMAL(6,2) NOT NULL,
+    PRIMARY KEY (pedido_id, plato_id), 
     FOREIGN KEY (pedido_id) REFERENCES pedidos(id),
     FOREIGN KEY (plato_id) REFERENCES platos(id)
 );
@@ -91,7 +91,7 @@ CREATE TABLE ingrediente_plato (
     ingrediente_id INT NOT NULL,
     plato_id INT NOT NULL,
     cantidadracioncompletaenkg DECIMAL(8,3),
-    cantidadracionmediaenkg DECIMAL(8,3),
+    cantidadracioncmediaenkg DECIMAL(8,3),
     PRIMARY KEY (ingrediente_id, plato_id),
     FOREIGN KEY (ingrediente_id) REFERENCES Ingredientes(id),
     FOREIGN KEY (plato_id) REFERENCES platos(id)
@@ -215,7 +215,7 @@ INSERT INTO Ingredientes (descripcion, precio_x_euro) VALUES
 ('Aceitunas', 4.00),
 ('Espárragos Trigueros', 8.50);
 -- Relación de platos con sus ingredientes base
-INSERT INTO ingrediente_plato (ingrediente_id, plato_id, cantidadracioncompletaenkg, cantidadracionmediaenkg) VALUES
+INSERT INTO ingrediente_plato (ingrediente_id, plato_id, cantidadracioncompletaenkg, cantidadracioncmediaenkg) VALUES
 -- Chuletas de Cordero (ID 1)
 (2, 1, 0.400, 0.200), -- Cordero
 (26, 1, 0.020, 0.010), -- Aceite
@@ -586,7 +586,7 @@ BEGIN
         END IF;
         
         -- 1. Insertamos el "esqueleto" del pedido inicialmente a coste 0 y CERRADO (simulando historia)
-        INSERT INTO pedidos (total, subtotal, cliente_id, empleado_id, es_a_domicilio, direccion_id, abierto)
+        INSERT INTO pedidos (total, subtotal, cliente_id, empleado_id, `esadomicilio?`, direccion_id, `abierto?`)
         VALUES (0, 0, r_cliente_id, r_empleado_id, r_es_a_domicilio, r_direccion_id, FALSE);
         
         SET current_pedido_id = LAST_INSERT_ID();
@@ -615,8 +615,8 @@ BEGIN
             -- Cantidad del plato elegido (entre 1 y 4)
             SET r_cantidad = FLOOR(1 + (RAND() * 3));
             
-            -- Usar INSERT IGNORE previene que falle si escoge exactamente el mismo plato y tipo_racion
-            INSERT IGNORE INTO platos_pedidos (pedido_id, plato_id, tipo_racion, cantidad, precio_unitario)
+            -- Usar INSERT IGNORE previene que falle si escoge exactamente el mismo plato
+            INSERT IGNORE INTO platos_pedidos (pedido_id, plato_id, `media o completa?`, cantidad, `precio unitario`)
             VALUES (current_pedido_id, r_plato_id, r_tipo_racion, r_cantidad, v_precio_unitario);
             
             -- Sumar al subtotal solo si hubo inserción real (ROW_COUNT evitará sumar repetidos omitidos)
@@ -654,7 +654,7 @@ CREATE PROCEDURE AbrirPedido(
 )
 BEGIN
     -- Insertar el pedido con todo a cero y ABIERTO
-    INSERT INTO pedidos (total, subtotal, cliente_id, empleado_id, es_a_domicilio, direccion_id, abierto)
+    INSERT INTO pedidos (total, subtotal, cliente_id, empleado_id, `esadomicilio?`, direccion_id, `abierto?`)
     VALUES (0, 0, p_cliente_id, p_empleado_id, p_es_a_domicilio, p_direccion_id, TRUE);
     
     -- Consultar el pedido por ID para poder mostrarlo e identificarlo
@@ -694,29 +694,30 @@ BEGIN
         END IF;
 
         -- Insertar los productos en platos_pedidos
-        INSERT INTO platos_pedidos (pedido_id, plato_id, tipo_racion, cantidad, precio_unitario)
+        -- El PK es (pedido_id, plato_id), por lo que ON DUPLICATE solo maneja el mismo plato
+        INSERT INTO platos_pedidos (pedido_id, plato_id, `media o completa?`, cantidad, `precio unitario`)
         VALUES (p_pedido_id, p_plato_id, p_tipo_racion, p_cantidad, v_precio_unitario)
         ON DUPLICATE KEY UPDATE 
             cantidad = cantidad + p_cantidad,
-            precio_unitario = VALUES(precio_unitario);
+            `precio unitario` = VALUES(`precio unitario`),
+            `media o completa?` = VALUES(`media o completa?`);
 
         -- Sumar los productos y meterlos al subtotal
-        SELECT SUM(cantidad * precio_unitario) INTO v_subtotal_acumulado 
+        SELECT SUM(cantidad * `precio unitario`) INTO v_subtotal_acumulado 
         FROM platos_pedidos 
         WHERE pedido_id = p_pedido_id;
 
         -- Multiplicar subtotal por el IVA (21%) y sumar para poner en el total
-        -- Nota: Si es a domicilio, se mantiene el recargo de 2.50 definido anteriormente
         UPDATE pedidos 
         SET subtotal = v_subtotal_acumulado,
-            total = (v_subtotal_acumulado * 1.21) + IF(es_a_domicilio, 2.50, 0)
+            total = (v_subtotal_acumulado * 1.21) + IF(`esadomicilio?`, 2.50, 0)
         WHERE id = p_pedido_id;
 
         -- Out: pedido rellenado (información del pedido)
         SELECT * FROM pedidos WHERE id = p_pedido_id;
 
         -- Out: Detalle del Ticket
-        SELECT pl.nombre, pp.tipo_racion, pp.cantidad, pp.precio_unitario, (pp.cantidad * pp.precio_unitario) AS total_linea
+        SELECT pl.nombre, pp.`media o completa?`, pp.cantidad, pp.`precio unitario`, (pp.cantidad * pp.`precio unitario`) AS total_linea
         FROM platos_pedidos pp
         JOIN platos pl ON pp.plato_id = pl.id
         WHERE pp.pedido_id = p_pedido_id;
@@ -726,7 +727,7 @@ END //
 -- Procedimiento 3: Cerrar Pedido
 CREATE PROCEDURE CerrarPedido(IN p_pedido_id INT)
 BEGIN
-    UPDATE pedidos SET abierto = FALSE WHERE id = p_pedido_id;
+    UPDATE pedidos SET `abierto?` = FALSE WHERE id = p_pedido_id;
     SELECT * FROM pedidos WHERE id = p_pedido_id;
 END //
 
@@ -740,7 +741,7 @@ INSERT IGNORE INTO cliente_direccion (cliente_id, direccion_id)
 SELECT c.id, d.id FROM clientes c JOIN Direcciones d ON d.Direccion = 'Calle Larios 12'
 WHERE c.email = 'jeremiaselcocas@gmail.com';
 
-INSERT INTO pedidos (total, subtotal, cliente_id, empleado_id, es_a_domicilio, direccion_id, abierto)
+INSERT INTO pedidos (total, subtotal, cliente_id, empleado_id, `esadomicilio?`, direccion_id, `abierto?`)
 SELECT 15.00, 15.00, c.id, 1, TRUE, d.id, FALSE
 FROM clientes c
 JOIN Direcciones d ON d.Direccion = 'Calle Larios 12'
@@ -757,14 +758,14 @@ CREATE OR REPLACE VIEW RentabilidadPlatos AS
 SELECT 
     p.nombre AS Plato,
     SUM(pp.cantidad) AS Total_Vendido,
-    ROUND(SUM(pp.cantidad * pp.precio_unitario), 2) AS Ingresos_Totales,
+    ROUND(SUM(pp.cantidad * pp.`precio unitario`), 2) AS Ingresos_Totales,
     ROUND(SUM(pp.cantidad * (
         SELECT COALESCE(SUM(ip.cantidadracioncompletaenkg * i.precio_x_euro), 0)
         FROM ingrediente_plato ip
         JOIN Ingredientes i ON ip.ingrediente_id = i.id
         WHERE ip.plato_id = p.id
     )), 2) AS Coste_Ingredientes_Estimado,
-    ROUND(SUM(pp.cantidad * pp.precio_unitario) - SUM(pp.cantidad * (
+    ROUND(SUM(pp.cantidad * pp.`precio unitario`) - SUM(pp.cantidad * (
         SELECT COALESCE(SUM(ip.cantidadracioncompletaenkg * i.precio_x_euro), 0)
         FROM ingrediente_plato ip
         JOIN Ingredientes i ON ip.ingrediente_id = i.id
@@ -807,7 +808,7 @@ DELIMITER ;
 
 -- 2. Vista de los 10 pedidos más caros
 CREATE OR REPLACE VIEW Top10PedidosMasCaros AS
-SELECT id, total, cliente_id, empleado_id, es_a_domicilio
+SELECT id, total, cliente_id, empleado_id, `esadomicilio?`
 FROM pedidos
 ORDER BY total DESC
 LIMIT 10;

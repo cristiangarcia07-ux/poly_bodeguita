@@ -25,17 +25,16 @@
 
 ---
 
-## Descripción General: El Alma de la Bodeguita
+## Descripción General
 
-**Poly Bodeguita** no es simplemente una base de datos; es el sistema nervioso digital de una de las instituciones gastronómicas más emblemáticas de Sevilla. Este proyecto nace de la necesidad de fusionar la tradición del tapeo andaluz con la eficiencia analítica contemporánea, permitiendo que la magia de la cocina se mantenga organizada detrás del terminal.
+**Poly Bodeguita** es un sistema completo de gestión para un restaurante/bodeguita sevillana. Permite gestionar:
 
-En lugar de limitarse a registrar transacciones, el sistema ha sido diseñado para entender el flujo humano del restaurante:
-- **Relación con el Cliente**: Gestionamos no solo datos de contacto, sino la fidelidad y las preferencias de entrega de quienes confían en nosotros para sus cenas y celebraciones.
-- **Factor Humano**: Empoderamos a nuestros empleados con una interfaz que autentica su labor y les ayuda a gestionar la complejidad de los pedidos en tiempo real.
-- **Alquimia Culinaria**: El sistema profundiza en el escandallo, conectando cada gramo de ingrediente con el precio de mercado actual y la rentabilidad final del plato.
-- **Inteligencia Operativa**: A través de vistas avanzadas y procedimientos almacenados, transformamos filas de datos en decisiones estratégicas sobre el margen de beneficio, la popularidad de los platos y la eficiencia del personal de reparto.
-
-En esencia, Poly Bodeguita es una herramienta técnica con propósito humano: asegurar que el sabor de siempre siga siendo un negocio sostenible y tecnológicamente vanguardista.
+- **Clientes** y sus direcciones de entrega
+- **Empleados** con autenticación
+- **Carta de platos** con precios por ración completa y media
+- **Pedidos** tanto en local como a domicilio, con cálculo automático de IVA y recargos
+- **Ingredientes** y su relación con los platos (para análisis de rentabilidad)
+- **Estadísticas** de ventas, rentabilidad por plato y cliente estrella
 
 El proyecto se compone de tres capas principales desplegadas con Docker:
 
@@ -116,7 +115,7 @@ cd poly_bodeguita
 ```bash
 docker ps | grep mariadb_container
 ```
-
+**asegurate DE QUE ESTE EN FUNCIONAMIENTO**
 Si no está corriendo, arráncalo (ver sección [Requisitos Previos](#requisitos-previos)).
 
 ### 3. Arrancar todo
@@ -231,9 +230,9 @@ Cabecera de cada pedido realizado.
 | `subtotal` | DECIMAL(10,2) | NOT NULL | Suma de los platos sin impuestos |
 | `cliente_id` | INT | NOT NULL, FK → clientes | Cliente que realiza el pedido |
 | `empleado_id` | INT | NOT NULL, FK → empleados | Empleado que atiende |
-| `es_a_domicilio` | BOOLEAN | NOT NULL, DEFAULT FALSE | Si el pedido es para entregar |
+| `esadomicilio?` | BOOLEAN | NOT NULL, DEFAULT FALSE | Si el pedido es para entregar |
 | `direccion_id` | INT | Nullable, FK → Direcciones | Dirección de entrega (si aplica) |
-| `abierto` | BOOLEAN | NOT NULL, DEFAULT TRUE | Estado del pedido (abierto/cerrado) |
+| `abierto?` | BOOLEAN | NOT NULL, DEFAULT TRUE | Estado del pedido (abierto/cerrado) |
 
 #### `platos`
 Carta del restaurante.
@@ -254,9 +253,9 @@ Detalle de línea de cada pedido (qué platos contiene).
 |---------|------|---------------|-------------|
 | `pedido_id` | INT | PK, FK → pedidos | Pedido al que pertenece |
 | `plato_id` | INT | PK, FK → platos | Plato seleccionado |
-| `tipo_racion` | VARCHAR(10) | PK, NOT NULL | `'media'` o `'completa'` |
+| `media o completa?` | VARCHAR(10) | NOT NULL | `'media'` o `'completa'` |
 | `cantidad` | INT | NOT NULL | Unidades pedidas |
-| `precio_unitario` | DECIMAL(6,2) | NOT NULL | Precio unitario aplicado |
+| `precio unitario` | DECIMAL(6,2) | NOT NULL | Precio unitario aplicado |
 
 #### `Ingredientes`
 Ingredientes base con sus precios de mercado.
@@ -275,7 +274,7 @@ Relación N:M entre ingredientes y platos, con las cantidades necesarias.
 | `ingrediente_id` | INT | PK, FK → Ingredientes | Ingrediente |
 | `plato_id` | INT | PK, FK → platos | Plato |
 | `cantidadracioncompletaenkg` | DECIMAL(8,3) | Nullable | Kg por ración completa |
-| `cantidadracionmediaenkg` | DECIMAL(8,3) | Nullable | Kg por media ración |
+| `cantidadracioncmediaenkg` | DECIMAL(8,3) | Nullable | Kg por media ración |
 
 ---
 
@@ -413,7 +412,7 @@ Añade un plato a un pedido existente:
 
 ### `CerrarPedido(p_pedido_id)`
 
-Marca un pedido como cerrado (`abierto = FALSE`).
+Marca un pedido como cerrado (`abierto? = FALSE`).
 
 ---
 

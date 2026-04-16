@@ -117,7 +117,7 @@ function renderOrdersTable() {
     tbody.innerHTML = '';
     state.orders.slice().reverse().slice(0, 15).forEach(order => {
         const client = state.clients.find(c => c.id === order.cliente_id);
-        const isOpen = order.abierto === 1 || order.abierto === true;
+        const isOpen = order['abierto?'] === 1 || order['abierto?'] === true;
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>#${order.id}</td>
@@ -135,7 +135,7 @@ function renderOrdersTable() {
 }
 
 function updateStats() {
-    const openOrders = state.orders.filter(o => o.abierto === 1 || o.abierto === true);
+    const openOrders = state.orders.filter(o => o['abierto?'] === 1 || o['abierto?'] === true);
     document.getElementById('count-active').innerText = openOrders.length;
     const total = state.orders.reduce((acc, curr) => acc + parseFloat(curr.total || 0), 0);
     document.getElementById('revenue-today').innerText = `${total.toFixed(2)}€`;
@@ -210,8 +210,12 @@ window.editOrder = openOrderModal;
 window.closeOrder = async (id) => {
     try {
         const order = state.orders.find(o => o.id === id);
-        const newStatus = (order.abierto === 1 || order.abierto === true) ? 0 : 1;
-        await fetch(`${API_BASE}/pedidos/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ abierto: newStatus }) });
+        const newStatus = (order['abierto?'] === 1 || order['abierto?'] === true) ? 0 : 1;
+        await fetch(`${API_BASE}/pedidos/${id}`, { 
+            method: 'PUT', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify({ 'abierto?': newStatus }) 
+        });
         loadDashboard();
     } catch (e) {}
 };
@@ -262,7 +266,12 @@ async function submitOrder() {
             await fetch(`${API_BASE}/pedidos/${orderId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ total, subtotal, cliente_id: parseInt(o.clientId), es_a_domicilio: o.type === 'delivery' ? 1 : 0 })
+                body: JSON.stringify({ 
+                    total, 
+                    subtotal, 
+                    cliente_id: parseInt(o.clientId), 
+                    'esadomicilio?': o.type === 'delivery' ? 1 : 0 
+                })
             });
         } else {
             console.log('Step 1: Creating Order Header...');
@@ -273,7 +282,7 @@ async function submitOrder() {
                 total, subtotal,
                 cliente_id: parseInt(o.clientId),
                 empleado_id: state.currentUser ? state.currentUser.id : 1,
-                es_a_domicilio: o.type === 'delivery' ? 1 : 0,
+                'esadomicilio?': o.type === 'delivery' ? 1 : 0,
                 direccion_id: (o.type === 'delivery' && addrVal) ? parseInt(addrVal) : null
             };
             console.log('Payload:', body);
@@ -306,9 +315,9 @@ async function submitOrder() {
                     body: JSON.stringify({
                         pedido_id: orderId,
                         plato_id: item.id,
-                        tipo_racion: 'completa',
+                        'media o completa?': 'completa',
                         cantidad: item.cantidad,
-                        precio_unitario: item.precio_x_racion
+                        'precio unitario': item.precio_x_racion
                     })
                 });
                 if (!res.ok) console.warn(`Item ${k} failed: ${res.status}`);
