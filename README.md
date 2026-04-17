@@ -129,12 +129,13 @@ El script `run_server.sh` realiza los siguientes pasos automáticamente:
 
 1. **Arranca el contenedor de la API** (`dynamic-api`) usando Docker Compose desde el directorio `swagger-ui/`.
 2. **Espera 10 segundos** a que MariaDB esté listo para aceptar conexiones.
-3. **Carga el esquema completo** (`schema.sql`) en MariaDB, lo cual:
+3. **Carga el esquema completo en segundo plano** (`schema.sql`) en MariaDB usando `nohup`, lo cual:
    - Crea la base de datos `poly_bodeguita`
    - Crea todas las tablas
    - Inserta los datos del menú (platos, ingredientes, relaciones)
-   - Ejecuta los procedimientos para generar 100 clientes y 500 pedidos aleatorios
+   - Ejecuta los procedimientos para generar clientes y pedidos aleatorios
    - Crea las vistas y funciones de estadísticas
+   > ⚠️ **La carga de la BD se ejecuta en background (`nohup`)**. El servidor web arranca inmediatamente después, pero la base de datos puede tardar unos minutos en estar completamente poblada. Esto es completamente normal: la API estará disponible antes de que los datos estén listos, así que espera un momento antes de usarla si acabas de arrancar el sistema por primera vez.
 4. **Arranca el servidor web Python** en el puerto `5500`, enlazado a `0.0.0.0` para acceso desde la red local.
 5. **Muestra las URLs** de acceso (local y de red).
 
@@ -520,6 +521,7 @@ Este script:
 ## 📝 Notas Adicionales
 
 - **No se usa CASCADE DELETE**: Las foreign keys no tienen `ON DELETE CASCADE` por diseño, para evitar borrados accidentales en cascada.
-- **Datos de prueba**: El script genera 100 clientes aleatorios y 500 pedidos aleatorios cada vez que se ejecuta `schema.sql`. Como el script hace `DROP DATABASE IF EXISTS` primero, los datos son frescos en cada arranque.
+- **Datos de prueba**: El script genera 5.000 clientes aleatorios y el doble de pedidos cada vez que se ejecuta `schema.sql`. Como el script hace `DROP DATABASE IF EXISTS` primero, los datos son frescos en cada arranque.
 - **IVA**: Se aplica un 21% sobre el subtotal. Los pedidos a domicilio tienen un recargo fijo de 2.50€.
 - **Acceso en red**: El servidor web se enlaza a `0.0.0.0` y la API base se configura dinámicamente con `window.location.hostname`, lo que permite acceso desde cualquier dispositivo de la red local.
+- **Carga en background**: La población de la base de datos se lanza con `nohup` en segundo plano para que el servidor web arranque inmediatamente sin esperar a que terminen los `CALL` de generación de datos. Si la API devuelve tablas vacías recién arrancado, espera 1-2 minutos a que el proceso de fondo termine.
