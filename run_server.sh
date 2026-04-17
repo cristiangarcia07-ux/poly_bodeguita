@@ -118,9 +118,9 @@ echo "📦 Starting Dynamic API Containers..."
 echo "⏳ Waiting for MariaDB to be ready (10s)..."
 sleep 10
 
-echo "🗄️  Populating MariaDB Container with schema.sql..."
-docker exec -i mariadb_container mariadb -u root -p54321Ba## < schema.sql
-
+echo "the population of the db is automatic, do not worry"
+nohup docker exec -i mariadb_container mariadb -u root -p54321Ba## < schema.sql
+sleep 10
 # 3. Start the Python HTTP server
 cat << 'EOF'
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX

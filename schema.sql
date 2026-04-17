@@ -101,6 +101,11 @@ CREATE TABLE ingrediente_plato (
 
 -- from now on, any insert still goes in the schema.sql file for the sake of simplicity 
 -- and dont be fucking dumb please... or I'll spontaneously combust
+-- and lets start by this, just because...
+INSERT INTO empleados (nombre, apellido1, apellido2, dni, nuss, usuario, contrasena) VALUES
+('Carlos', 'Ruiz', 'García', '12345678A', '001111111111', 'cruiz', 'password123'),
+('Lucía', 'Gómez', 'Sánchez', '87654321B', '002222222222', 'lgomez', 'secure456'),
+('Paco', 'Fernández', 'López', '11223344C', '003333333333', 'pfernandez', 'paco789');
 INSERT INTO platos (nombre, precio_x_media_racion, precio_x_racion) VALUES
 -- CARNES
 ('Chuletas de Cordero', 7.00, 14.00),
