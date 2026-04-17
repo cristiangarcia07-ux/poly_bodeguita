@@ -426,7 +426,7 @@ END //
 DELIMITER ;
 
 -- deja de tocar esto, ya me encargo yo de esto...
-CALL GenerarClientesAleatorios(100000);
+CALL GenerarClientesAleatorios(5000);
 -- Limpiar la tabla temporal
 DROP TEMPORARY TABLE IF EXISTS temp_nombres;
 
@@ -735,8 +735,9 @@ END //
 
 DELIMITER ;
 
--- Ejecutamos la simulación para 500 pedidos
-CALL GenerarPedidosAleatorios(500000);
+-- Ejecutamos la simulación para los pedidos (el doble de los clientes)
+SELECT COUNT(*) * 2 INTO @total_pedidos FROM clientes;
+CALL GenerarPedidosAleatorios(@total_pedidos);
 
 -- Agregar pedidos manuales para Jeremias a la dirección de Málaga para que salte la promoción (mínimo 20 pedidos)
 INSERT IGNORE INTO cliente_direccion (cliente_id, direccion_id)
