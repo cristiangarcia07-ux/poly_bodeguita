@@ -431,18 +431,13 @@ END //
 DELIMITER ;
 
 -- deja de tocar esto, ya me encargo yo de esto...
-CALL GenerarClientesAleatorios(5000);
--- Limpiar la tabla temporal
+CALL GenerarClientesAleatorios(500);
+-- Limpiar la tabla temporalgit
 DROP TEMPORARY TABLE IF EXISTS temp_nombres;
 
 -- ==========================================================
--- INSERCIÓN DE EMPLEADOS Y DIRECCIONES BASE
+-- INSERCIÓN DE DIRECCIONES BASE
 -- ==========================================================
-INSERT INTO empleados (nombre, apellido1, apellido2, dni, nuss, usuario, contrasena) VALUES
-('Carlos', 'Ruiz', 'García', '12345678A', '001111111111', 'cruiz', 'password123'),
-('Lucía', 'Gómez', 'Sánchez', '87654321B', '002222222222', 'lgomez', 'secure456'),
-('Paco', 'Fernández', 'López', '11223344C', '003333333333', 'pfernandez', 'paco789');
-
 INSERT INTO Direcciones (provincia, Direccion, codigo_postal) VALUES
 ('Sevilla', 'Calle Tartessos 12', '41809'),
 ('Sevilla', 'Avenida de la Constitución 5', '41809'),
